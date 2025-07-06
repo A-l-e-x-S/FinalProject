@@ -5,12 +5,12 @@
     android:background="#FFFFFF">
 
     <LinearLayout
-        android:layout_gravity="center"
+        android:id="@+id/emptyStateContainer"
         android:orientation="vertical"
         android:gravity="center"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="32dp">
+        android:layout_height="match_parent"
+        android:visibility="gone">
 
         <ImageView
             android:id="@+id/emptyStateIcon"
@@ -24,8 +24,14 @@
             android:id="@+id/emptyStateText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="You don't have any spending records yet."
+            android:text="You don't have any groups yet."
             android:textSize="18sp"
             android:textColor="#666666" />
     </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/groupsRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp" />
 </FrameLayout>

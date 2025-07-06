@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_graph"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.finalproject.HomeFragment"
+        android:label="Home"
+        tools:layout="@layout/fragment_home">
+
+        <action
+            android:id="@+id/action_homeFragment_to_CreateGroupExpensesFragment"
+            app:destination="@id/CreateGroupExpensesFragment" />
+
+        <action
+            android:id="@+id/action_homeFragment_to_PersonalExpensesFragment"
+            app:destination="@id/PersonalExpensesFragment" />
+
+        <action
+            android:id="@+id/action_homeFragment_to_CreatedGroupFragment"
+            app:destination="@id/CreatedGroupFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_profileFragment2"
+            app:destination="@id/profileFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.example.finalproject.ProfileFragment"
+        android:label="Profile"
+        tools:layout="@layout/fragment_profile" />
+
+    <fragment
+        android:id="@+id/CreateGroupExpensesFragment"
+        android:name="com.example.finalproject.CreateGroupExpensesFragment"
+        android:label="Create Group"
+        tools:layout="@layout/fragment_create_group_expenses">
+
+        <action
+            android:id="@+id/action_CreateGroupExpensesFragment_to_CreatedGroupFragment"
+            app:destination="@id/CreatedGroupFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/PersonalExpensesFragment"
+        android:name="com.example.finalproject.PersonalExpensesFragment"
+        android:label="Personal Expenses"
+        tools:layout="@layout/fragment_personal_expenses" />
+
+    <fragment
+        android:id="@+id/CreatedGroupFragment"
+        android:name="com.example.finalproject.CreatedGroupFragment"
+        android:label="Created Group"
+        tools:layout="@layout/fragment_created_group">
+
+        <argument
+            android:name="groupId"
+            app:argType="integer" />
+        <action
+            android:id="@+id/action_CreatedGroupFragment_to_AddExpenseFragment"
+            app:destination="@id/AddExpenseFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/AddExpenseFragment"
+        android:name="com.example.finalproject.AddExpenseFragment"
+        android:label="Add Expense"
+        tools:layout="@layout/fragment_add_expense">
+
+    <argument
+        android:name="groupId"
+        app:argType="integer" />
+    </fragment>
+</navigation>

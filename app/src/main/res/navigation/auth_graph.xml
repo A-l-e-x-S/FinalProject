@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/auth_graph"
+    app:startDestination="@id/loginFragment">
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.finalproject.LoginFragment"
+        android:label="Login"
+        tools:layout="@layout/fragment_login">
+
+        <action
+            android:id="@+id/action_loginFragment_to_UserRegistrationFragment"
+            app:destination="@id/UserRegistrationFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="false"/>
+
+        <action
+            android:id="@+id/action_loginFragment_to_mainGraph"
+            app:destination="@id/main_graph" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/UserRegistrationFragment"
+        android:name="com.example.finalproject.UserRegistrationFragment"
+        android:label="Register"
+        tools:layout="@layout/fragment_user_registration">
+
+        <action
+            android:id="@+id/action_UserRegistrationFragment_to_loginFragment"
+            app:destination="@id/loginFragment" />
+
+        <action
+            android:id="@+id/action_UserRegistrationFragment_to_mainGraph"
+            app:destination="@+id/main_graph" />
+    </fragment>
+</navigation>

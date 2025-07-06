@@ -1,5 +1,11 @@
 <resources>
     <string name="app_name">FinalProject</string>
+    <string-array name="group_types">
+        <item>Travel</item>
+        <item>House</item>
+        <item>Family</item>
+        <item>Other</item>
+    </string-array>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
