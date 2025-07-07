@@ -39,10 +39,19 @@
             android:layout_marginBottom="32dp" />
 
         <Button
+            android:id="@+id/editButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#00CFFF"
+            android:text="Edit"
+            android:textColor="#FFFFFF" />
+
+        <Button
             android:id="@+id/logoutButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:backgroundTint="#FF4444"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="#00CFFF"
             android:text="Logout"
             android:textColor="#FFFFFF" />
 
@@ -50,9 +59,9 @@
             android:id="@+id/deleteProfileButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="#00CFFF"
             android:text="Delete My Profile"
-            android:backgroundTint="#FF4444"
-            android:textColor="#FFFFFF"
-            android:layout_marginTop="16dp" />
+            android:textColor="#FFFFFF" />
     </LinearLayout>
 </ScrollView>
