@@ -94,7 +94,7 @@ class CreatedGroupFragment : Fragment() {
         return when (item.itemId) {
             android.R.id.home -> {
                 sendGroupCreatedFlag()
-                findNavController().navigateUp()
+                findNavController().popBackStack(R.id.homeFragment, false)
                 true
             }
             R.id.menu_settings -> {
@@ -127,11 +127,11 @@ class CreatedGroupFragment : Fragment() {
                 when (options[which]) {
                     "Leave Group" -> {
                         // Логика выхода из группы
-                        findNavController().navigateUp()
+                        findNavController().popBackStack(R.id.homeFragment, false)
                     }
                     "Delete Group" -> {
                         // Логика удаления группы
-                        findNavController().navigateUp()
+                        findNavController().popBackStack(R.id.homeFragment, false)
                     }
                 }
             }
