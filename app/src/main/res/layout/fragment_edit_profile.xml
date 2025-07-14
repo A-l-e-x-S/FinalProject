@@ -11,32 +11,28 @@
         android:gravity="center_horizontal"
         android:padding="24dp">
 
-        <!-- Profile picture with edit icon overlay -->
         <FrameLayout
             android:layout_width="150dp"
             android:layout_height="150dp"
             android:layout_marginBottom="16dp">
 
             <ImageView
-                android:id="@+id/profileImageView"
+                android:id="@+id/editIconImageView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:background="@drawable/circle_background"
                 android:src="@drawable/ic_user_placeholder"
-                android:clickable="true"
-                android:focusable="true" />
+                android:scaleType="centerCrop"
+                android:background="@drawable/circle_background" />
 
             <ImageView
-                android:id="@+id/editIconImageView"
+                android:id="@+id/cameraIconImageView"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_gravity="bottom|end"
                 android:layout_margin="8dp"
                 android:src="@drawable/ic_camera"
-                android:padding="8dp"
-                android:clickable="true"
-                android:focusable="true" />
+                android:background="@drawable/circle_white_background"
+                android:padding="8dp" />
         </FrameLayout>
 
 
@@ -44,18 +40,18 @@
             android:id="@+id/userNameEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Username"
-            android:textSize="18sp"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="16dp"
+            android:background="@android:drawable/edit_text"
+            android:hint="Enter your name" />
 
         <EditText
             android:id="@+id/userEmailEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Email"
-            android:inputType="textEmailAddress"
-            android:textSize="18sp"
-            android:layout_marginBottom="32dp" />
+            android:layout_marginBottom="16dp"
+            android:background="@android:drawable/edit_text"
+            android:hint="Enter your email"
+            android:inputType="textEmailAddress" />
 
         <Button
             android:id="@+id/saveButton"
@@ -74,5 +70,11 @@
             android:text="Cancel"
             android:textColor="#FFFFFF" />
 
+        <ProgressBar
+            android:id="@+id/photoUploadProgressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" />
     </LinearLayout>
 </ScrollView>

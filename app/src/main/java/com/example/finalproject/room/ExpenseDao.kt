@@ -10,9 +10,15 @@ interface ExpenseDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertExpense(expense: ExpenseEntity)
 
-    @Query("SELECT * FROM expenses WHERE groupId = :groupId")
-    fun getExpensesForGroup(groupId: Int): LiveData<List<ExpenseEntity>>
+    @Query("SELECT * FROM expenses WHERE groupId = :groupId ORDER BY timestamp DESC")
+    fun getExpensesForGroup(groupId: String): LiveData<List<ExpenseEntity>>
 
     @Query("DELETE FROM expenses WHERE groupId = :groupId")
-    suspend fun deleteExpensesByGroup(groupId: Int)
+    suspend fun deleteExpensesByGroup(groupId: String)
+
+    @Delete
+    suspend fun deleteExpense(expense: ExpenseEntity)
+
+    @Query("DELETE FROM expenses WHERE payerUid = :uid")
+    suspend fun deleteExpensesByUser(uid: String)
 }

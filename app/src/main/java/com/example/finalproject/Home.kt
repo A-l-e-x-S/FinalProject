@@ -2,9 +2,6 @@ package com.example.finalproject
 
 import android.os.Bundle
 import android.view.*
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -15,13 +12,21 @@ import com.example.finalproject.Adapter.GroupsAdapter
 import com.example.finalproject.Model.GroupEntity
 import com.example.finalproject.viewmodel.GroupViewModel
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuProvider
+import androidx.lifecycle.Lifecycle
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 class HomeFragment : Fragment() {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
-    }
+    private lateinit var groupsRecyclerView: RecyclerView
+    private lateinit var groupsAdapter: GroupsAdapter
+    private val groupsList = mutableListOf<GroupEntity>()
+    private lateinit var emptyStateContainer: View
+    private lateinit var currentUid: String
+    private lateinit var viewModel: GroupViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -30,32 +35,62 @@ class HomeFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_home, container, false)
     }
 
-    private lateinit var groupsRecyclerView: RecyclerView
-    private lateinit var groupsAdapter: GroupsAdapter
-    private val groupsList = mutableListOf<GroupEntity>()
-    private lateinit var emptyStateContainer: View
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         (requireActivity() as AppCompatActivity).supportActionBar?.title = "Home"
+
+        val menuProvider = object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.menu_home, menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return when (menuItem.itemId) {
+                    R.id.action_add_transaction -> {
+                        navigateToCreateGroup()
+                        true
+                    }
+                    else -> false
+                }
+            }
+        }
+        requireActivity().addMenuProvider(menuProvider, viewLifecycleOwner, Lifecycle.State.RESUMED)
+
+        currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
         emptyStateContainer = view.findViewById(R.id.emptyStateContainer)
         groupsRecyclerView = view.findViewById(R.id.groupsRecyclerView)
         groupsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
-        groupsAdapter = GroupsAdapter(groupsList) { group ->
-            val action = HomeFragmentDirections.actionHomeFragmentToCreatedGroupFragment(group.id)
-            findNavController().navigate(action)
-        }
-        groupsRecyclerView.adapter = groupsAdapter
 
-        val viewModel = ViewModelProvider(this).get(GroupViewModel::class.java)
-        viewModel.allGroups.observe(viewLifecycleOwner) { groups ->
-            if (groups.isNotEmpty()) {
+        groupsAdapter = GroupsAdapter(
+            groupsList,
+            onGroupClick = { group ->
+            val action = HomeFragmentDirections.actionHomeFragmentToCreatedGroupFragment(group.firestoreId)
+            findNavController().navigate(action)
+        },
+        onEditClick = { group ->
+            val action = HomeFragmentDirections.actionHomeFragmentToEditGroupFragment(group.firestoreId)
+            findNavController().navigate(action)
+        },
+        currentUid = currentUid
+        )
+        groupsRecyclerView.adapter = groupsAdapter
+        viewModel = ViewModelProvider(this)[GroupViewModel::class.java]
+        viewModel.syncGroups(currentUid, requireContext())
+
+        viewModel.getGroupsForUser(currentUid).observe(viewLifecycleOwner) { groups ->
+            val filteredGroups = groups.filter { group ->
+                val members = Gson().fromJson<List<String>>(group.membersJson, object : TypeToken<List<String>>() {}.type)
+                members.contains(currentUid)
+            }
+
+            if (filteredGroups.isNotEmpty()) {
                 emptyStateContainer.visibility = View.GONE
                 groupsRecyclerView.visibility = View.VISIBLE
 
                 groupsList.clear()
-                groupsList.addAll(groups)
+                groupsList.addAll(filteredGroups)
                 groupsAdapter.notifyDataSetChanged()
             } else {
                 emptyStateContainer.visibility = View.VISIBLE
@@ -64,39 +99,8 @@ class HomeFragment : Fragment() {
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.menu_home, menu)
-        super.onCreateOptionsMenu(menu, inflater)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_add_transaction -> {
-                showSelectionDialog()
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
-    }
-
-    private fun showSelectionDialog() {
-        val options = arrayOf("Track Personal Expenses", "Create Group")
-
-        AlertDialog.Builder(requireContext())
-            .setTitle("Select an option")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> {
-                        val action = HomeFragmentDirections.actionHomeFragmentToPersonalExpensesFragment()
-                        findNavController().navigate(action)
-                    }
-                    1 -> {
-                        val action = HomeFragmentDirections.actionHomeFragmentToCreateGroupExpensesFragment()
-                        findNavController().navigate(action)
-                    }
-                }
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
+    private fun navigateToCreateGroup() {
+        val action = HomeFragmentDirections.actionHomeFragmentToCreateGroupExpensesFragment()
+        findNavController().navigate(action)
     }
 }

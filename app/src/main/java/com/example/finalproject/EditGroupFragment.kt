@@ -1,43 +1,61 @@
 package com.example.finalproject
 
 import android.Manifest
+import android.os.Bundle
+import androidx.fragment.app.Fragment
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Bundle
-import android.view.*
+import android.provider.MediaStore
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.cloudinary.android.MediaManager
 import com.cloudinary.android.callback.ErrorInfo
 import com.cloudinary.android.callback.UploadCallback
 import com.example.finalproject.viewmodel.GroupViewModel
+import androidx.appcompat.app.AppCompatActivity
+import com.squareup.picasso.Picasso
+import com.google.firebase.firestore.FirebaseFirestore
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import java.io.File
-import com.squareup.picasso.Picasso
-import androidx.core.content.ContextCompat
-import com.example.finalproject.Model.GroupEntity
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.gson.Gson
 
-class CreateGroupExpensesFragment : Fragment() {
+class EditGroupFragment : Fragment() {
 
+    private lateinit var groupViewModel: GroupViewModel
+    private lateinit var groupId: String
     private var uploadedImageUrl: String? = null
     private var photoUri: Uri? = null
+    private var isImageUploaded = false
+
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let { uploadImageToCloudinary(it) }
     }
+
     private val takePhotoLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         if (success && photoUri != null) {
             uploadImageToCloudinary(photoUri!!)
         }
     }
-    private val CAMERA_PERMISSION_REQUEST_CODE = 1003
-    private var isImageUploaded = false
+
+    private val CAMERA_PERMISSION_REQUEST_CODE = 2003
+
+    private lateinit var groupNameEditText: EditText
+    private lateinit var groupTypeSpinner: Spinner
+    private lateinit var groupPhotoImageView: ImageView
+    private lateinit var photoProgressBar: ProgressBar
+    private lateinit var submitButton: Button
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        groupId = EditGroupFragmentArgs.fromBundle(requireArguments()).groupId
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -49,71 +67,76 @@ class CreateGroupExpensesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val groupNameEditText = view.findViewById<EditText>(R.id.groupNameEditText)
-        val groupTypeSpinner = view.findViewById<Spinner>(R.id.groupTypeSpinner)
-        val submitButton = view.findViewById<Button>(R.id.submitButton)
-        val groupPhotoImageView = view.findViewById<ImageView>(R.id.groupPhotoImageView)
+        groupViewModel = ViewModelProvider(this)[GroupViewModel::class.java]
 
-        ArrayAdapter.createFromResource(
-            requireContext(),
-            R.array.group_types,
-            android.R.layout.simple_spinner_item
-        ).also { adapter ->
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            groupTypeSpinner.adapter = adapter
-        }
+        groupNameEditText = view.findViewById(R.id.groupNameEditText)
+        groupTypeSpinner = view.findViewById(R.id.groupTypeSpinner)
+        groupPhotoImageView = view.findViewById(R.id.groupPhotoImageView)
+        photoProgressBar = view.findViewById(R.id.photoUploadProgressBar)
+        submitButton = view.findViewById(R.id.submitButton)
 
-        groupPhotoImageView.setOnClickListener {
-            showImageSourceDialog()
-        }
+        val cameraIcon = view.findViewById<ImageView>(R.id.cameraIconImageView)
+        cameraIcon.setOnClickListener { showImageSourceDialog() }
+
+        setupSpinner()
+        loadGroupData()
 
         submitButton.setOnClickListener {
-            val groupName = groupNameEditText.text.toString().trim()
-            val selectedGroupType = groupTypeSpinner.selectedItem.toString()
+            updateGroup()
+        }
+    }
 
-            if (groupName.isEmpty()) {
-                groupNameEditText.error = "Group name is required"
-                return@setOnClickListener
+    private fun setupSpinner() {
+        val types = listOf("Travel", "House", "Family", "Other")
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, types)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        groupTypeSpinner.adapter = adapter
+    }
+
+    private fun loadGroupData() {
+        groupViewModel.getGroupById(groupId).observe(viewLifecycleOwner) { group ->
+            groupNameEditText.setText(group.groupName)
+            uploadedImageUrl = group.groupPhotoUrl
+            val typeIndex = (groupTypeSpinner.adapter as ArrayAdapter<String>).getPosition(group.groupType)
+            groupTypeSpinner.setSelection(typeIndex)
+
+            if (!group.groupPhotoUrl.isNullOrEmpty()) {
+                Picasso.get().load(group.groupPhotoUrl).into(groupPhotoImageView)
             }
+        }
+    }
 
-            val uid = FirebaseAuth.getInstance().currentUser?.uid
-            if (uid == null) {
-                Toast.makeText(requireContext(), "User session not found. Please login again.", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
+    private fun updateGroup() {
+        val name = groupNameEditText.text.toString().trim()
+        val type = groupTypeSpinner.selectedItem.toString()
 
-            val groupData = hashMapOf(
-                "groupName" to groupName,
-                "groupType" to selectedGroupType,
-                "groupPhotoUrl" to uploadedImageUrl,
-                "createdByUid" to uid,
-                "members" to listOf(uid)
+        if (name.isEmpty()) {
+            Toast.makeText(requireContext(), "Please enter a group name", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val db = FirebaseFirestore.getInstance()
+        val groupRef = db.collection("groups").document(groupId)
+
+        groupRef.update(
+            mapOf(
+                "groupName" to name,
+                "groupType" to type,
+                "groupPhotoUrl" to uploadedImageUrl
             )
-
-            FirebaseFirestore.getInstance()
-                .collection("groups")
-                .add(groupData)
-                .addOnSuccessListener { documentRef ->
-                    Toast.makeText(requireContext(), "Group created!", Toast.LENGTH_SHORT).show()
-
-                    val groupId = documentRef.id
-                    val groupEntity = GroupEntity(
-                        firestoreId = groupId,
-                        groupName = groupData["groupName"] as String,
-                        groupType = groupData["groupType"] as String,
-                        groupPhotoUrl = uploadedImageUrl,
-                        createdByUid = FirebaseAuth.getInstance().currentUser?.uid ?: "",
-                        membersJson = Gson().toJson(groupData["members"])
-                    )
-                    val viewModel = ViewModelProvider(this)[GroupViewModel::class.java]
-                    viewModel.insertGroup(groupEntity)
-                    val action = CreateGroupExpensesFragmentDirections
-                        .actionCreateGroupExpensesFragmentToCreatedGroupFragment(groupId)
-                    findNavController().navigate(action)
-                }
-                .addOnFailureListener { e ->
-                    Toast.makeText(requireContext(), "Failed to create group: ${e.message}", Toast.LENGTH_LONG).show()
-                }
+        ).addOnSuccessListener {
+            groupViewModel.getGroupById(groupId).observe(viewLifecycleOwner) { oldGroup ->
+                val updatedGroup = oldGroup.copy(
+                    groupName = name,
+                    groupType = type,
+                    groupPhotoUrl = uploadedImageUrl
+                )
+                groupViewModel.insertGroup(updatedGroup)
+                Toast.makeText(requireContext(), "Group updated", Toast.LENGTH_SHORT).show()
+                findNavController().popBackStack()
+            }
+        }.addOnFailureListener {
+            Toast.makeText(requireContext(), "Failed to update group", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -143,43 +166,36 @@ class CreateGroupExpensesFragment : Fragment() {
     }
 
     private fun uploadImageToCloudinary(imageUri: Uri) {
-        val progressBar = view?.findViewById<ProgressBar>(R.id.photoUploadProgressBar)
-        val imageView = view?.findViewById<ImageView>(R.id.groupPhotoImageView)
-
-        progressBar?.visibility = View.VISIBLE
-
+        photoProgressBar.visibility = View.VISIBLE
         Toast.makeText(requireContext(), "Uploading started", Toast.LENGTH_SHORT).show()
 
         MediaManager.get().upload(imageUri)
             .callback(object : UploadCallback {
                 override fun onStart(requestId: String?) {}
-
                 override fun onProgress(requestId: String?, bytes: Long, totalBytes: Long) {}
-
                 override fun onSuccess(requestId: String?, resultData: Map<*, *>) {
                     val imageUrl = resultData["secure_url"] as String
                     uploadedImageUrl = imageUrl
                     isImageUploaded = true
 
-                    Toast.makeText(requireContext(), "Upload Success", Toast.LENGTH_SHORT).show()
-
-                    if (isAdded && imageView != null) {
+                    if (isAdded) {
                         Picasso.get()
                             .load(imageUrl)
                             .placeholder(R.drawable.ic_group_placeholder)
-                            .into(imageView)
+                            .into(groupPhotoImageView)
                     }
 
-                    progressBar?.visibility = View.GONE
+                    Toast.makeText(requireContext(), "Upload Success", Toast.LENGTH_SHORT).show()
+                    photoProgressBar.visibility = View.GONE
                 }
 
                 override fun onError(requestId: String?, error: ErrorInfo?) {
                     Toast.makeText(requireContext(), "Upload Failed", Toast.LENGTH_SHORT).show()
-                    progressBar?.visibility = View.GONE
+                    photoProgressBar.visibility = View.GONE
                 }
 
                 override fun onReschedule(requestId: String?, error: ErrorInfo?) {
-                    progressBar?.visibility = View.GONE
+                    photoProgressBar.visibility = View.GONE
                 }
             })
             .dispatch()
@@ -189,7 +205,6 @@ class CreateGroupExpensesFragment : Fragment() {
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
             != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(arrayOf(Manifest.permission.CAMERA), CAMERA_PERMISSION_REQUEST_CODE)
-
         } else {
             takePhoto()
         }
@@ -199,7 +214,6 @@ class CreateGroupExpensesFragment : Fragment() {
         requestCode: Int, permissions: Array<out String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
         if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 takePhoto()

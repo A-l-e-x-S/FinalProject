@@ -16,9 +16,19 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         repository = ExpenseRepository(expenseDao)
     }
 
-    fun getExpensesForGroup(groupId: Int) = repository.getExpensesForGroup(groupId)
+    fun getExpensesForGroup(groupId: String): LiveData<List<ExpenseEntity>> {
+        return repository.getExpensesForGroup(groupId)
+    }
 
     fun insertExpense(expense: ExpenseEntity) = viewModelScope.launch {
         repository.insertExpense(expense)
+    }
+
+    fun deleteExpensesForGroup(groupId: String) = viewModelScope.launch {
+        repository.deleteExpensesForGroup(groupId)
+    }
+
+    fun deleteExpense(expense: ExpenseEntity) = viewModelScope.launch {
+        repository.deleteExpense(expense)
     }
 }

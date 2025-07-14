@@ -5,9 +5,10 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "groups_table")
 data class GroupEntity(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @PrimaryKey val firestoreId: String,
     val groupName: String,
     val groupType: String,
     val groupPhotoUrl: String? = null,
-    val userId: Int
+    val createdByUid: String,
+    val membersJson: String
 )

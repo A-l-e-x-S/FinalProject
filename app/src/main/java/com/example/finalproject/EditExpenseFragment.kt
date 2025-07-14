@@ -31,12 +31,16 @@ import com.cloudinary.android.callback.UploadCallback
 import com.squareup.picasso.Picasso
 import java.io.File
 
-class AddExpenseFragment : Fragment() {
+class EditExpenseFragment : Fragment() {
 
     private lateinit var expenseViewModel: ExpenseViewModel
     private var uploadedImageUrl: String? = null
     private var photoUri: Uri? = null
-    private val CAMERA_PERMISSION_REQUEST_CODE = 2003
+    private var currentGroupId: String? = null
+    private var currentSplitBetweenJson: String? = null
+
+    private val CAMERA_PERMISSION_REQUEST_CODE = 2004
+
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let { uploadImageToCloudinary(it) }
     }
@@ -57,19 +61,62 @@ class AddExpenseFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val expenseId = EditExpenseFragmentArgs.fromBundle(requireArguments()).expenseId
         val expenseNameEditText = view.findViewById<EditText>(R.id.expenseNameEditText)
         val expenseAmountEditText = view.findViewById<EditText>(R.id.expenseAmountEditText)
         val notesEditText = view.findViewById<EditText>(R.id.notesExpensesEditText)
-        val saveButton = view.findViewById<Button>(R.id.saveExpenseButton)
-
-        val groupId = AddExpenseFragmentArgs.fromBundle(requireArguments()).groupId
-        val uid = FirebaseAuth.getInstance().currentUser?.uid
-        expenseViewModel = ViewModelProvider(this)[ExpenseViewModel::class.java]
+        val expenseImageView = view.findViewById<ImageView>(R.id.expenseImageView)
         val addImageButton = view.findViewById<Button>(R.id.addImageButton)
+        val saveButton = view.findViewById<Button>(R.id.saveExpenseButton)
+        var existingPhotoUrl: String? = null
+        expenseViewModel = ViewModelProvider(this)[ExpenseViewModel::class.java]
+
+        FirebaseFirestore.getInstance().collection("expenses").document(expenseId)
+            .get()
+            .addOnSuccessListener { doc ->
+                if (doc.exists()) {
+                    val currentUid = FirebaseAuth.getInstance().currentUser?.uid
+                    val payerUid = doc.getString("payerUid")
+                    if (payerUid != currentUid) {
+                        Toast.makeText(requireContext(), "You can only edit your own expenses", Toast.LENGTH_SHORT).show()
+                        findNavController().navigateUp()
+                        return@addOnSuccessListener
+                    }
+
+                    val title = doc.getString("title") ?: ""
+                    val amount = doc.getDouble("amount") ?: 0.0
+                    val description = doc.getString("description") ?: ""
+                    val photoUrl = doc.getString("photoUrl")
+                    val groupId = doc.getString("groupId") ?: ""
+                    val splitBetween = doc["splitBetween"] as? List<String> ?: listOf(currentUid)
+                    existingPhotoUrl = photoUrl
+
+                    expenseNameEditText.setText(title)
+                    expenseAmountEditText.setText(amount.toString())
+                    notesEditText.setText(description)
+
+                    if (!photoUrl.isNullOrEmpty()) {
+                        expenseImageView.visibility = View.VISIBLE
+                        Picasso.get()
+                            .load(photoUrl)
+                            .placeholder(R.drawable.ic_user_placeholder)
+                            .into(expenseImageView)
+                    }
+
+                    uploadedImageUrl = photoUrl
+                    currentGroupId = groupId
+                    currentSplitBetweenJson = Gson().toJson(splitBetween)
+                } else {
+                    Toast.makeText(requireContext(), "Expense not found", Toast.LENGTH_SHORT).show()
+                    findNavController().navigateUp()
+                }
+            }
+            .addOnFailureListener {
+                Toast.makeText(requireContext(), "Failed to load expense", Toast.LENGTH_SHORT).show()
+            }
 
         addImageButton.setOnClickListener {
             val options = arrayOf("Choose from Gallery", "Take a Photo")
-
             AlertDialog.Builder(requireContext())
                 .setTitle("Select Image")
                 .setItems(options) { _, which ->
@@ -81,76 +128,66 @@ class AddExpenseFragment : Fragment() {
                 .setNegativeButton("Cancel", null)
                 .show()
         }
-        saveButton.setOnClickListener {
-            val expenseName = expenseNameEditText.text.toString().trim()
-            val expenseAmountStr = expenseAmountEditText.text.toString().trim()
-            val notes = notesEditText.text.toString().trim()
 
-            if (expenseName.isEmpty() || expenseAmountStr.isEmpty() || uid == null) {
+        saveButton.setOnClickListener {
+            val title = expenseNameEditText.text.toString().trim()
+            val amountStr = expenseAmountEditText.text.toString().trim()
+            val description = notesEditText.text.toString().trim()
+            val uid = FirebaseAuth.getInstance().currentUser?.uid
+
+            if (title.isEmpty() || amountStr.isEmpty() || uid == null) {
                 Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            val amount = expenseAmountStr.toDoubleOrNull()
+            val amount = amountStr.toDoubleOrNull()
             if (amount == null) {
                 Toast.makeText(requireContext(), "Invalid amount", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            FirebaseFirestore.getInstance()
-                .collection("groups")
-                .document(groupId)
-                .get()
-                .addOnSuccessListener { groupDoc ->
-                    val members = groupDoc["members"] as? List<String> ?: listOf(uid)
+            val finalPhotoUrl = uploadedImageUrl ?: existingPhotoUrl
 
-                    val expenseData = hashMapOf(
-                        "groupId" to groupId,
-                        "amount" to amount,
-                        "description" to notes,
-                        "title" to expenseName,
-                        "payerUid" to uid,
-                        "splitBetween" to members,
-                        "timestamp" to Timestamp.now(),
-                        "photoUrl" to uploadedImageUrl
+            val updatedExpense = mapOf(
+                "title" to title,
+                "amount" to amount,
+                "description" to description,
+                "photoUrl" to finalPhotoUrl,
+                "timestamp" to Timestamp.now()
+            )
+
+            FirebaseFirestore.getInstance()
+                .collection("expenses")
+                .document(expenseId)
+                .update(updatedExpense)
+                .addOnSuccessListener {
+                    Toast.makeText(requireContext(), "Expense updated", Toast.LENGTH_SHORT).show()
+
+                    val updatedEntity = ExpenseEntity(
+                        id = expenseId,
+                        groupId = currentGroupId ?: "",
+                        title = title,
+                        description = description,
+                        amount = amount,
+                        payerUid = uid,
+                        timestamp = System.currentTimeMillis(),
+                        splitBetweenJson = currentSplitBetweenJson ?: "[]",
+                        photoUrl = finalPhotoUrl
                     )
 
-                    FirebaseFirestore.getInstance()
-                        .collection("expenses")
-                        .add(expenseData)
-                        .addOnSuccessListener { expenseDocRef ->
-                            val firestoreId = expenseDocRef.id
-                            Toast.makeText(requireContext(), "Expense saved", Toast.LENGTH_SHORT).show()
-
-                            val splitJson = Gson().toJson(members)
-
-                            val cachedExpense = ExpenseEntity(
-                                id = firestoreId,
-                                groupId = groupId,
-                                title = expenseName,
-                                description = notes,
-                                amount = amount,
-                                payerUid = uid,
-                                timestamp = System.currentTimeMillis(),
-                                splitBetweenJson = splitJson,
-                                photoUrl = uploadedImageUrl
-                            )
-
-                            expenseViewModel.insertExpense(cachedExpense)
-                            findNavController().navigateUp()
-                        }
-                        .addOnFailureListener {
-                            Toast.makeText(requireContext(), "Failed to save expense", Toast.LENGTH_SHORT).show()
-                        }
+                    expenseViewModel.insertExpense(updatedEntity)
+                    findNavController().navigateUp()
                 }
                 .addOnFailureListener {
-                    Toast.makeText(requireContext(), "Failed to load group", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Failed to update expense", Toast.LENGTH_SHORT).show()
                 }
         }
     }
+
     private fun checkCameraPermissionAndTakePhoto() {
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
-            != PackageManager.PERMISSION_GRANTED) {
+            != PackageManager.PERMISSION_GRANTED
+        ) {
             requestPermissions(arrayOf(Manifest.permission.CAMERA), CAMERA_PERMISSION_REQUEST_CODE)
         } else {
             takePhoto()
@@ -168,38 +205,39 @@ class AddExpenseFragment : Fragment() {
     }
 
     private fun uploadImageToCloudinary(imageUri: Uri) {
-        val progressBar = view?.findViewById<ProgressBar>(R.id.photoUploadProgressBar)
-        progressBar?.visibility = View.VISIBLE
+        if (!isAdded) return
+        val rootView = view ?: return
+        val expenseImageView = rootView.findViewById<ImageView>(R.id.expenseImageView)
+        val progressBar = rootView.findViewById<ProgressBar>(R.id.photoUploadProgressBar)
+        progressBar.visibility = View.VISIBLE
+
         Toast.makeText(requireContext(), "Uploading image...", Toast.LENGTH_SHORT).show()
-        val expenseImageView = view?.findViewById<ImageView>(R.id.expenseImageView)
 
         MediaManager.get().upload(imageUri)
             .callback(object : UploadCallback {
-                override fun onStart(requestId: String?) {
-                }
-
+                override fun onStart(requestId: String?) {}
                 override fun onProgress(requestId: String?, bytes: Long, totalBytes: Long) {}
-
                 override fun onSuccess(requestId: String?, resultData: Map<*, *>) {
                     val imageUrl = resultData["secure_url"] as String
                     uploadedImageUrl = imageUrl
 
-                    expenseImageView?.visibility = View.VISIBLE
+                    expenseImageView.visibility = View.VISIBLE
                     Picasso.get()
                         .load(imageUrl)
+                        .placeholder(R.drawable.ic_user_placeholder)
                         .into(expenseImageView)
 
                     Toast.makeText(requireContext(), "Image uploaded successfully", Toast.LENGTH_SHORT).show()
-                    progressBar?.visibility = View.GONE
+                    progressBar.visibility = View.GONE
                 }
 
                 override fun onError(requestId: String?, error: ErrorInfo?) {
                     Toast.makeText(requireContext(), "Upload failed", Toast.LENGTH_SHORT).show()
-                    progressBar?.visibility = View.GONE
+                    progressBar.visibility = View.GONE
                 }
 
                 override fun onReschedule(requestId: String?, error: ErrorInfo?) {
-                    progressBar?.visibility = View.GONE
+                    progressBar.visibility = View.GONE
                 }
             })
             .dispatch()
@@ -209,6 +247,7 @@ class AddExpenseFragment : Fragment() {
         requestCode: Int, permissions: Array<out String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
         if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 takePhoto()
@@ -218,3 +257,4 @@ class AddExpenseFragment : Fragment() {
         }
     }
 }
+

@@ -3,11 +3,12 @@ plugins {
     alias(libs.plugins.kotlin.android)
     id("org.jetbrains.kotlin.kapt")
     id("androidx.navigation.safeargs.kotlin")
+    id("com.google.gms.google-services")
 }
 
 android {
     namespace = "com.example.finalproject"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.finalproject"
@@ -39,15 +40,20 @@ android {
 
 dependencies {
 
-    // Room
-    implementation ("androidx.room:room-runtime:2.7.2")
-    kapt ("androidx.room:room-compiler:2.7.2")
-    implementation ("androidx.room:room-ktx:2.7.2")
+    implementation (platform("com.google.firebase:firebase-bom:33.16.0"))
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-analytics-ktx")
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    implementation (libs.androidx.room.runtime)
+    kapt (libs.androidx.room.compiler)
+    implementation (libs.androidx.room.ktx)
 
     implementation (libs.picasso)
-    implementation ("com.cloudinary:cloudinary-android:2.3.1")
-    implementation("androidx.navigation:navigation-fragment-ktx:2.9.0")
-    implementation("androidx.navigation:navigation-ui-ktx:2.9.0")
+    implementation("com.cloudinary:cloudinary-android:2.3.1")
+    implementation(libs.androidx.navigation.fragment.ktx.v291)
+    implementation(libs.androidx.navigation.ui.ktx.v291)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

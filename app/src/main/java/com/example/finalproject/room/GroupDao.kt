@@ -8,17 +8,17 @@ import com.example.finalproject.Model.GroupEntity
 interface GroupDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertGroup(group: GroupEntity): Long
+    suspend fun insertGroup(group: GroupEntity)
 
-    @Query("SELECT * FROM groups_table")
-    fun getAllGroups(): LiveData<List<GroupEntity>>
+    @Query("SELECT * FROM groups_table WHERE membersJson LIKE '%' || :uid || '%'")
+    fun getGroupsForUser(uid: String): LiveData<List<GroupEntity>>
 
-    @Query("SELECT * FROM groups_table WHERE id = :groupId LIMIT 1")
-    fun getGroupById(groupId: Int): LiveData<GroupEntity>
+    @Query("SELECT * FROM groups_table WHERE firestoreId = :groupId LIMIT 1")
+    fun getGroupById(groupId: String): LiveData<GroupEntity>
 
-    @Query("SELECT * FROM groups_table WHERE userId = :userId")
-    suspend fun getGroupsByUser(userId: Int): List<GroupEntity>
+    @Query("DELETE FROM groups_table WHERE firestoreId = :groupId")
+    suspend fun deleteGroup(groupId: String)
 
-    @Query("DELETE FROM groups_table WHERE userId = :userId")
-    suspend fun deleteGroupsByUser(userId: Int)
+    @Query("DELETE FROM groups_table WHERE createdByUid = :uid OR membersJson LIKE '%' || :uid || '%'")
+    suspend fun deleteGroupsByUser(uid: String)
 }

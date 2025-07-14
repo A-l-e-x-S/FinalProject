@@ -5,8 +5,14 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "expenses")
 data class ExpenseEntity(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val groupId: Int,
-    val expenseName: String,
-    val amount: Double
+    @PrimaryKey(autoGenerate = false)
+    val id: String,
+    val groupId: String,
+    val title: String,
+    val description: String? = null,
+    val amount: Double,
+    val payerUid: String,
+    val timestamp: Long,
+    val splitBetweenJson: String,
+    val photoUrl: String? = null
 )

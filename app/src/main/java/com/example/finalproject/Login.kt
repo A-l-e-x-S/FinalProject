@@ -9,11 +9,11 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.navigation.fragment.findNavController
-import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import com.example.finalproject.Userdata.SessionManager
-import com.example.finalproject.room.AppDatabase
-import kotlinx.coroutines.launch
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.firestore.FirebaseFirestore
 
 class LoginFragment : Fragment() {
 
@@ -42,25 +42,51 @@ class LoginFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            lifecycleScope.launch {
-                val userDao = AppDatabase.getDatabase(requireContext()).userDao()
-                val user = userDao.login(email, password)
+            FirebaseAuth.getInstance()
+                .signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@addOnCompleteListener
 
-                if (user != null) {
-                    SessionManager.saveUserSession(requireContext(), user.id)
+                        FirebaseFirestore.getInstance()
+                            .collection("users")
+                            .document(uid)
+                            .get()
+                            .addOnSuccessListener { document ->
+                                if (document.exists()) {
+                                    val username = document.getString("username") ?: ""
+                                    val photoUrl = document.getString("profilePhotoUrl")
 
-                    (requireActivity() as MainActivity).showMainNavigation()
-                    val mainNavController = (requireActivity() as MainActivity).mainNavController
-                    mainNavController.navigate(R.id.homeFragment)
-                } else {
-                    Toast.makeText(
-                        requireContext(),
-                        "Invalid email or password",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+                                    SessionManager.saveUserSession(requireContext(), uid)
+
+                                    Toast.makeText(requireContext(), "Welcome, $username!", Toast.LENGTH_SHORT).show()
+
+                                    (requireActivity() as MainActivity).showMainNavigation()
+                                    val mainNavController = (requireActivity() as MainActivity).mainNavController
+                                    mainNavController.navigate(R.id.homeFragment)
+                                } else {
+                                    Toast.makeText(requireContext(), "User registered but profile is missing. Please contact support.", Toast.LENGTH_LONG).show()
+                                }
+                            }
+                            .addOnFailureListener {
+                                Toast.makeText(requireContext(), "Failed to load profile", Toast.LENGTH_SHORT).show()
+                            }
+
+                    }  else {
+                val errorMessage = when (val exception = task.exception) {
+                is FirebaseAuthInvalidUserException -> "User not found. Please register first."
+                is FirebaseAuthInvalidCredentialsException -> "Incorrect password. Please try again."
+                else -> "Login failed: ${exception?.message}"
             }
-
+            Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_LONG).show()
         }
+        }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        view?.findViewById<EditText>(R.id.emailEditText)?.setText("")
+        view?.findViewById<EditText>(R.id.passwordEditText)?.setText("")
     }
 }

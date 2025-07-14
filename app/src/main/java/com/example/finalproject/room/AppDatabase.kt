@@ -8,7 +8,7 @@ import com.example.finalproject.Model.ExpenseEntity
 import com.example.finalproject.Model.GroupEntity
 import com.example.finalproject.Model.UserEntity
 
-@Database(entities = [GroupEntity::class, ExpenseEntity::class, UserEntity::class], version = 4)
+@Database(entities = [GroupEntity::class, ExpenseEntity::class, UserEntity::class], version = 10)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun groupDao(): GroupDao

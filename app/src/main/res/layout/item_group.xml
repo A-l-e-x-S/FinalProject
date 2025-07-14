@@ -28,4 +28,13 @@
         android:text="Group Type"
         android:textSize="14sp"
         android:textColor="#888888" />
+
+    <ImageView
+        android:id="@+id/editGroupButton"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/ic_edit"
+        android:contentDescription="Edit"
+        android:visibility="gone"
+        android:padding="4dp" />
 </LinearLayout>

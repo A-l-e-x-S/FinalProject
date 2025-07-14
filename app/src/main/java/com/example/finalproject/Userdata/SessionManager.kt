@@ -5,16 +5,16 @@ import android.content.Context
 object SessionManager {
 
     private const val PREF_NAME = "user_session"
-    private const val KEY_USER_ID = "user_id"
+    private const val KEY_USER_UID = "user_uid"
 
-    fun saveUserSession(context: Context, userId: Int) {
+    fun saveUserSession(context: Context, uid: String) {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putInt(KEY_USER_ID, userId).apply()
+        prefs.edit().putString(KEY_USER_UID, uid).apply()
     }
 
-    fun getUserSession(context: Context): Int {
+    fun getUserSession(context: Context): String? {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        return prefs.getInt(KEY_USER_ID, -1)
+        return prefs.getString(KEY_USER_UID, null)
     }
 
     fun clearUserSession(context: Context) {

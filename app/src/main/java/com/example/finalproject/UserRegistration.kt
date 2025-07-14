@@ -13,9 +13,9 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
@@ -28,11 +28,9 @@ import java.io.File
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
-import androidx.lifecycle.lifecycleScope
-import com.example.finalproject.Model.UserEntity
 import com.example.finalproject.Userdata.SessionManager
-import com.example.finalproject.room.AppDatabase
-import kotlinx.coroutines.launch
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 
 class UserRegistrationFragment : Fragment() {
@@ -96,27 +94,42 @@ class UserRegistrationFragment : Fragment() {
                     return@setOnClickListener
                 }
 
-                lifecycleScope.launch {
-                    val userDao = AppDatabase.getDatabase(requireContext()).userDao()
-                    val existingUser = userDao.getUserByEmail(email)
+                view.findViewById<Button>(R.id.submitRegisterButton).isEnabled = false
+                Toast.makeText(requireContext(), "Creating account...", Toast.LENGTH_SHORT).show()
 
-                    if (existingUser != null) {
-                        Toast.makeText(requireContext(), "User with this email already exists", Toast.LENGTH_SHORT).show()
-                    } else {
-                        val newUser = UserEntity(
-                            email = email,
-                            password = password,
-                            username = username,
-                            profilePhotoUrl = uploadedProfileImageUrl
-                        )
-                        val userId = userDao.insertUser(newUser).toInt()
-                        SessionManager.saveUserSession(requireContext(), userId)
+                FirebaseAuth.getInstance()
+                    .createUserWithEmailAndPassword(email, password)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            val uid = FirebaseAuth.getInstance().currentUser?.uid
 
-                        (requireActivity() as MainActivity).showMainNavigation()
-                        val mainNavController = (requireActivity() as MainActivity).mainNavController
-                        mainNavController.navigate(R.id.homeFragment)
+                            val userMap = hashMapOf(
+                                "uid" to uid,
+                                "email" to email,
+                                "username" to username,
+                                "profilePhotoUrl" to uploadedProfileImageUrl
+                            )
+
+                            FirebaseFirestore.getInstance()
+                                .collection("users")
+                                .document(uid!!)
+                                .set(userMap)
+                                .addOnSuccessListener {
+                                    SessionManager.saveUserSession(requireContext(), uid)
+                                    Toast.makeText(requireContext(), "Registration successful", Toast.LENGTH_SHORT).show()
+
+                                    (requireActivity() as MainActivity).showMainNavigation()
+                                    view?.post {
+                                        (requireActivity() as MainActivity).mainNavController.navigate(R.id.homeFragment)
+                                    }
+                                }
+                                .addOnFailureListener {
+                                    Toast.makeText(requireContext(), "Failed to save user profile", Toast.LENGTH_SHORT).show()
+                                }
+                        } else {
+                            Toast.makeText(requireContext(), "Registration failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                        }
                     }
-                }
             }
     }
 
@@ -156,7 +169,9 @@ class UserRegistrationFragment : Fragment() {
     }
 
     private fun uploadImageToCloudinary(imageUri: Uri) {
+        val progressBar = view?.findViewById<ProgressBar>(R.id.photoUploadProgressBar)
         Toast.makeText(requireContext(), "Uploading photo...", Toast.LENGTH_SHORT).show()
+        progressBar?.visibility = View.VISIBLE
 
         MediaManager.get().upload(imageUri)
             .callback(object : UploadCallback {
@@ -174,13 +189,17 @@ class UserRegistrationFragment : Fragment() {
                         .load(imageUrl)
                         .placeholder(R.drawable.ic_user_placeholder)
                         .into(view?.findViewById(R.id.profilePhotoImageView))
+                    progressBar?.visibility = View.GONE
                 }
 
                 override fun onError(requestId: String?, error: ErrorInfo?) {
                     Toast.makeText(requireContext(), "Upload failed", Toast.LENGTH_SHORT).show()
+                    progressBar?.visibility = View.GONE
                 }
 
-                override fun onReschedule(requestId: String?, error: ErrorInfo?) {}
+                override fun onReschedule(requestId: String?, error: ErrorInfo?) {
+                    progressBar?.visibility = View.GONE
+                }
             })
             .dispatch()
     }

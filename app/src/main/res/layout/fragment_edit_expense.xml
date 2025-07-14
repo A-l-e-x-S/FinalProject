@@ -56,6 +56,14 @@
         android:textColor="#FFFFFF"
         android:text="Save" />
 
+    <Button
+        android:id="@+id/cancelExpenseButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="#00CFFF"
+        android:textColor="#FFFFFF"
+        android:text="Cancel" />
+
     <ProgressBar
         android:id="@+id/photoUploadProgressBar"
         android:layout_width="wrap_content"

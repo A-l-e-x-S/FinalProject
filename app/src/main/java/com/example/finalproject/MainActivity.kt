@@ -1,21 +1,22 @@
 package com.example.finalproject
 
 import android.os.Bundle
+import android.view.Menu
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
-import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI
-import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.example.finalproject.Userdata.SessionManager
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : AppCompatActivity() {
 
     lateinit var authNavController: NavController
     lateinit var mainNavController: NavController
+    private var didAutoLogin = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,11 +36,19 @@ class MainActivity : AppCompatActivity() {
         val bottomNavView = findViewById<BottomNavigationView>(R.id.bottomNavigationView)
         NavigationUI.setupWithNavController(bottomNavView, mainNavController)
 
-        bottomNavView.setOnItemReselectedListener { menuItem ->
+        bottomNavView.setOnItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.homeFragment -> {
                     mainNavController.popBackStack(R.id.homeFragment, false)
+                    mainNavController.navigate(R.id.homeFragment)
+                    true
                 }
+                R.id.profileFragment -> {
+                    mainNavController.popBackStack(R.id.profileFragment, false)
+                    mainNavController.navigate(R.id.profileFragment)
+                    true
+                }
+                else -> false
             }
         }
 
@@ -61,6 +70,7 @@ class MainActivity : AppCompatActivity() {
                     supportActionBar?.setDisplayHomeAsUpEnabled(false)
                 }
             }
+            invalidateOptionsMenu()
         }
 
         mainNavController.addOnDestinationChangedListener { _, destination, _ ->
@@ -68,15 +78,35 @@ class MainActivity : AppCompatActivity() {
                 supportActionBar?.show()
                 supportActionBar?.setDisplayHomeAsUpEnabled(false)
             }
+            invalidateOptionsMenu()
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menu?.clear()
+        val currentDestination = if (findViewById<View>(R.id.main_nav_host_fragment).visibility == View.VISIBLE) {
+            mainNavController.currentDestination
+        } else {
+            authNavController.currentDestination
+        }
+
+        return when (currentDestination?.id) {
+            R.id.homeFragment -> {
+                super.onCreateOptionsMenu(menu)
+            }
+            else -> {
+                false
+            }
         }
     }
 
     override fun onStart() {
         super.onStart()
 
-        val userId = SessionManager.getUserSession(this)
+        val uid = SessionManager.getUserSession(this)
 
-        if (userId != -1 && authNavController.currentDestination?.id == R.id.loginFragment) {
+        if (!didAutoLogin && uid != null && FirebaseAuth.getInstance().currentUser != null) {
+            didAutoLogin = true
             showMainNavigation()
             mainNavController.navigate(R.id.homeFragment)
         }
@@ -111,9 +141,7 @@ class MainActivity : AppCompatActivity() {
         val appBarConfiguration = AppBarConfiguration(setOf(
             R.id.homeFragment,
             R.id.profileFragment,
-            R.id.PersonalExpensesFragment
         ))
         NavigationUI.setupActionBarWithNavController(this, mainNavController, appBarConfiguration)
     }
 }
-

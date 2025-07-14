@@ -16,22 +16,25 @@
             app:destination="@id/CreateGroupExpensesFragment" />
 
         <action
-            android:id="@+id/action_homeFragment_to_PersonalExpensesFragment"
-            app:destination="@id/PersonalExpensesFragment" />
-
-        <action
             android:id="@+id/action_homeFragment_to_CreatedGroupFragment"
             app:destination="@id/CreatedGroupFragment" />
         <action
             android:id="@+id/action_homeFragment_to_profileFragment2"
             app:destination="@id/profileFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_editGroupFragment"
+            app:destination="@id/editGroupFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/profileFragment"
         android:name="com.example.finalproject.ProfileFragment"
         android:label="Profile"
-        tools:layout="@layout/fragment_profile" />
+        tools:layout="@layout/fragment_profile" >
+        <action
+            android:id="@+id/action_profileFragment_to_editProfileFragment"
+            app:destination="@id/editProfileFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/CreateGroupExpensesFragment"
@@ -45,12 +48,6 @@
     </fragment>
 
     <fragment
-        android:id="@+id/PersonalExpensesFragment"
-        android:name="com.example.finalproject.PersonalExpensesFragment"
-        android:label="Personal Expenses"
-        tools:layout="@layout/fragment_personal_expenses" />
-
-    <fragment
         android:id="@+id/CreatedGroupFragment"
         android:name="com.example.finalproject.CreatedGroupFragment"
         android:label="Created Group"
@@ -58,10 +55,13 @@
 
         <argument
             android:name="groupId"
-            app:argType="integer" />
+            app:argType="string" />
         <action
             android:id="@+id/action_CreatedGroupFragment_to_AddExpenseFragment"
             app:destination="@id/AddExpenseFragment" />
+        <action
+            android:id="@+id/action_CreatedGroupFragment_to_editExpenseFragment"
+            app:destination="@id/editExpenseFragment" />
     </fragment>
 
     <fragment
@@ -72,6 +72,30 @@
 
     <argument
         android:name="groupId"
-        app:argType="integer" />
+        app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/editProfileFragment"
+        android:name="com.example.finalproject.EditProfileFragment"
+        android:label="EditProfileFragment" />
+
+    <fragment
+        android:id="@+id/editExpenseFragment"
+        android:name="com.example.finalproject.EditExpenseFragment"
+        android:label="Edit Expense">
+
+        <argument
+            android:name="expenseId"
+            app:argType="string" />
+    </fragment>
+    <fragment
+        android:id="@+id/editGroupFragment"
+        android:name="com.example.finalproject.EditGroupFragment"
+        android:label="EditGroupFragment">
+
+    <argument
+        android:name="groupId"
+        app:argType="string" />
     </fragment>
 </navigation>
