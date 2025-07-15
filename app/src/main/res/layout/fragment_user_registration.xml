@@ -1,27 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:background="#FFFFFF"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:fillViewport="true">
 
     <LinearLayout
         android:id="@+id/registrationContainer"
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_horizontal">
-
-        <LinearLayout
-            android:id="@+id/whiteSpacerBlock"
-            android:layout_width="271dp"
-            android:layout_height="53dp"
-            android:background="#FFFFFF"
-            android:orientation="vertical" />
+        android:layout_height="match_parent"
+        android:gravity="center">
 
         <LinearLayout
             android:id="@+id/registrationFormContainer"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingHorizontal="30dp"
             android:paddingBottom="60dp">
