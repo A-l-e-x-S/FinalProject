@@ -24,6 +24,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import com.google.android.material.snackbar.Snackbar
 import java.io.File
 
 class EditGroupFragment : Fragment() {
@@ -111,7 +112,7 @@ class EditGroupFragment : Fragment() {
         val type = groupTypeSpinner.selectedItem.toString()
 
         if (name.isEmpty()) {
-            Toast.makeText(requireContext(), "Please enter a group name", Toast.LENGTH_SHORT).show()
+            Snackbar.make(requireView(), "Please enter a group name", Snackbar.LENGTH_SHORT).show()
             return
         }
 
@@ -132,11 +133,11 @@ class EditGroupFragment : Fragment() {
                     groupPhotoUrl = uploadedImageUrl
                 )
                 groupViewModel.insertGroup(updatedGroup)
-                Toast.makeText(requireContext(), "Group updated", Toast.LENGTH_SHORT).show()
+                Snackbar.make(requireView(), "Group updated", Snackbar.LENGTH_SHORT).show()
                 findNavController().popBackStack()
             }
         }.addOnFailureListener {
-            Toast.makeText(requireContext(), "Failed to update group", Toast.LENGTH_SHORT).show()
+            Snackbar.make(requireView(), "Failed to update group", Snackbar.LENGTH_SHORT).show()
         }
     }
 
@@ -167,7 +168,7 @@ class EditGroupFragment : Fragment() {
 
     private fun uploadImageToCloudinary(imageUri: Uri) {
         photoProgressBar.visibility = View.VISIBLE
-        Toast.makeText(requireContext(), "Uploading started", Toast.LENGTH_SHORT).show()
+        Snackbar.make(requireView(), "Uploading image...", Snackbar.LENGTH_SHORT).show()
 
         MediaManager.get().upload(imageUri)
             .callback(object : UploadCallback {
@@ -185,12 +186,12 @@ class EditGroupFragment : Fragment() {
                             .into(groupPhotoImageView)
                     }
 
-                    Toast.makeText(requireContext(), "Upload Success", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(requireView(), "Upload Success", Snackbar.LENGTH_SHORT).show()
                     photoProgressBar.visibility = View.GONE
                 }
 
                 override fun onError(requestId: String?, error: ErrorInfo?) {
-                    Toast.makeText(requireContext(), "Upload Failed", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(requireView(), "Upload Failed", Snackbar.LENGTH_SHORT).show()
                     photoProgressBar.visibility = View.GONE
                 }
 
@@ -218,7 +219,7 @@ class EditGroupFragment : Fragment() {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 takePhoto()
             } else {
-                Toast.makeText(requireContext(), "Camera permission is required", Toast.LENGTH_SHORT).show()
+                Snackbar.make(requireView(), "Camera permission is required", Snackbar.LENGTH_SHORT).show()
             }
         }
     }

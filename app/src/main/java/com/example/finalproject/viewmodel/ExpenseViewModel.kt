@@ -1,6 +1,7 @@
 package com.example.finalproject.viewmodel
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.*
 import com.example.finalproject.repository.ExpenseRepository
 import com.example.finalproject.room.AppDatabase
@@ -22,10 +23,6 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
 
     fun insertExpense(expense: ExpenseEntity) = viewModelScope.launch {
         repository.insertExpense(expense)
-    }
-
-    fun deleteExpensesForGroup(groupId: String) = viewModelScope.launch {
-        repository.deleteExpensesForGroup(groupId)
     }
 
     fun deleteExpense(expense: ExpenseEntity) = viewModelScope.launch {

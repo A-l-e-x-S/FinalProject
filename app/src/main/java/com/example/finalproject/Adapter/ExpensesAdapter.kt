@@ -1,5 +1,6 @@
 package com.example.finalproject.Adapter
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,9 +24,10 @@ import com.google.firebase.firestore.FirebaseFirestore
 import androidx.appcompat.app.AlertDialog
 
 class ExpensesAdapter(
-    private val expenses: List<ExpenseEntity>,
     private val uidToUsernameMap: Map<String, String>
 ) : RecyclerView.Adapter<ExpensesAdapter.ExpenseViewHolder>() {
+
+    private val expenses: MutableList<ExpenseEntity> = mutableListOf()
 
     class ExpenseViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val nameTextView: TextView = itemView.findViewById(R.id.expenseName)
@@ -47,7 +49,7 @@ class ExpensesAdapter(
 
     override fun onBindViewHolder(holder: ExpenseViewHolder, position: Int) {
         val expense = expenses[position]
-
+        Log.d("ADAPTER", "Binding expense: ${expense.title}")
         holder.nameTextView.text = expense.title
         holder.amountTextView.text = "₪ %.2f".format(expense.amount)
 
@@ -79,7 +81,6 @@ class ExpensesAdapter(
         }
 
         holder.balanceTextView.text = balanceText
-
         holder.sharedInfoTextView.text = "Shared between $splitCount ${if (splitCount == 1) "person" else "people"}"
 
         val participantsText = buildString {
@@ -111,19 +112,15 @@ class ExpensesAdapter(
             holder.descriptionTextView.visibility = View.GONE
         }
 
-        if (expense.payerUid == FirebaseAuth.getInstance().currentUser?.uid) {
+        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+        if (expense.payerUid == currentUserId) {
             holder.editExpenseButton.visibility = View.VISIBLE
-
             holder.editExpenseButton.setOnClickListener {
                 val action = CreatedGroupFragmentDirections
                     .actionCreatedGroupFragmentToEditExpenseFragment(expense.id)
                 it.findNavController().navigate(action)
             }
-        } else {
-            holder.editExpenseButton.visibility = View.GONE
-        }
 
-        if (expense.payerUid == FirebaseAuth.getInstance().currentUser?.uid) {
             holder.deleteExpenseButton.visibility = View.VISIBLE
             holder.deleteExpenseButton.setOnClickListener {
                 AlertDialog.Builder(holder.itemView.context)
@@ -147,9 +144,16 @@ class ExpensesAdapter(
                     .show()
             }
         } else {
+            holder.editExpenseButton.visibility = View.GONE
             holder.deleteExpenseButton.visibility = View.GONE
         }
     }
 
     override fun getItemCount(): Int = expenses.size
+
+    fun updateExpenses(newExpenses: List<ExpenseEntity>) {
+        expenses.clear()
+        expenses.addAll(newExpenses)
+        notifyDataSetChanged()
+    }
 }

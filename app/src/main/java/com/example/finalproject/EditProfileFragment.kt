@@ -21,6 +21,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import com.google.android.material.snackbar.Snackbar
 import java.io.File
 
 class EditProfileFragment : Fragment() {
@@ -109,7 +110,7 @@ class EditProfileFragment : Fragment() {
             val newEmail = userEmailEditText.text.toString().trim()
 
             if (newName.isEmpty() || newEmail.isEmpty()) {
-                Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show()
+                Snackbar.make(requireView(), "Please fill in all fields", Snackbar.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -122,11 +123,11 @@ class EditProfileFragment : Fragment() {
             FirebaseFirestore.getInstance().collection("users").document(uid)
                 .update(updatedMap)
                 .addOnSuccessListener {
-                    Toast.makeText(requireContext(), "Profile updated!", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(requireView(), "Profile updated!", Snackbar.LENGTH_SHORT).show()
                     findNavController().navigate(R.id.profileFragment)
                 }
                 .addOnFailureListener {
-                    Toast.makeText(requireContext(), "Update failed", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(requireView(), "Failed to update profile", Snackbar.LENGTH_SHORT).show()
                 }
         }
 
@@ -138,7 +139,7 @@ class EditProfileFragment : Fragment() {
     private fun uploadImageToCloudinary(imageUri: Uri) {
         val progressBar = view?.findViewById<ProgressBar>(R.id.photoUploadProgressBar)
         progressBar?.visibility = View.VISIBLE
-        Toast.makeText(requireContext(), "Uploading photo...", Toast.LENGTH_SHORT).show()
+        Snackbar.make(requireView(), "Uploading image...", Snackbar.LENGTH_SHORT).show()
 
         MediaManager.get().upload(imageUri)
             .callback(object : UploadCallback {
@@ -153,12 +154,12 @@ class EditProfileFragment : Fragment() {
                         Picasso.get().load(uploadedImageUrl).into(it)
                     }
 
-                    Toast.makeText(requireContext(), "Photo uploaded", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(requireView(), "Upload Success", Snackbar.LENGTH_SHORT).show()
                     progressBar?.visibility = View.GONE
                 }
 
                 override fun onError(requestId: String?, error: ErrorInfo?) {
-                    Toast.makeText(requireContext(), "Upload failed", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(requireView(), "Upload Failed", Snackbar.LENGTH_SHORT).show()
                     progressBar?.visibility = View.GONE
                 }
 
@@ -194,7 +195,7 @@ class EditProfileFragment : Fragment() {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 takePhoto()
             } else {
-                Toast.makeText(requireContext(), "Camera permission is required", Toast.LENGTH_SHORT).show()
+                Snackbar.make(requireView(), "Camera permission is required", Snackbar.LENGTH_SHORT).show()
             }
         }
     }

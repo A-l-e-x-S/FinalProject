@@ -20,6 +20,7 @@ import java.io.File
 import com.squareup.picasso.Picasso
 import androidx.core.content.ContextCompat
 import com.example.finalproject.Model.GroupEntity
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
@@ -78,7 +79,7 @@ class CreateGroupExpensesFragment : Fragment() {
 
             val uid = FirebaseAuth.getInstance().currentUser?.uid
             if (uid == null) {
-                Toast.makeText(requireContext(), "User session not found. Please login again.", Toast.LENGTH_SHORT).show()
+                Snackbar.make(requireView(), "User session not found. Please login again.", Snackbar.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -94,7 +95,7 @@ class CreateGroupExpensesFragment : Fragment() {
                 .collection("groups")
                 .add(groupData)
                 .addOnSuccessListener { documentRef ->
-                    Toast.makeText(requireContext(), "Group created!", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(requireView(), "Group created!", Snackbar.LENGTH_SHORT).show()
 
                     val groupId = documentRef.id
                     val groupEntity = GroupEntity(
@@ -112,7 +113,7 @@ class CreateGroupExpensesFragment : Fragment() {
                     findNavController().navigate(action)
                 }
                 .addOnFailureListener { e ->
-                    Toast.makeText(requireContext(), "Failed to create group: ${e.message}", Toast.LENGTH_LONG).show()
+                    Snackbar.make(requireView(), "Failed to create group: ${e.message}", Snackbar.LENGTH_SHORT).show()
                 }
         }
     }
@@ -148,7 +149,7 @@ class CreateGroupExpensesFragment : Fragment() {
 
         progressBar?.visibility = View.VISIBLE
 
-        Toast.makeText(requireContext(), "Uploading started", Toast.LENGTH_SHORT).show()
+        Snackbar.make(requireView(), "Uploading started", Snackbar.LENGTH_SHORT).show()
 
         MediaManager.get().upload(imageUri)
             .callback(object : UploadCallback {
@@ -161,7 +162,7 @@ class CreateGroupExpensesFragment : Fragment() {
                     uploadedImageUrl = imageUrl
                     isImageUploaded = true
 
-                    Toast.makeText(requireContext(), "Upload Success", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(requireView(), "Upload Success", Snackbar.LENGTH_SHORT).show()
 
                     if (isAdded && imageView != null) {
                         Picasso.get()
@@ -174,7 +175,7 @@ class CreateGroupExpensesFragment : Fragment() {
                 }
 
                 override fun onError(requestId: String?, error: ErrorInfo?) {
-                    Toast.makeText(requireContext(), "Upload Failed", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(requireView(), "Upload Failed", Snackbar.LENGTH_SHORT).show()
                     progressBar?.visibility = View.GONE
                 }
 
@@ -204,7 +205,7 @@ class CreateGroupExpensesFragment : Fragment() {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 takePhoto()
             } else {
-                Toast.makeText(requireContext(), "Camera permission is required", Toast.LENGTH_SHORT).show()
+                Snackbar.make(requireView(), "Camera permission is required", Snackbar.LENGTH_SHORT).show()
             }
         }
     }

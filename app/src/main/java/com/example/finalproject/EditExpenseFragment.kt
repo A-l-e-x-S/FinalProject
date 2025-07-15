@@ -12,7 +12,6 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.ProgressBar
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
@@ -28,6 +27,7 @@ import androidx.core.content.FileProvider
 import com.cloudinary.android.MediaManager
 import com.cloudinary.android.callback.ErrorInfo
 import com.cloudinary.android.callback.UploadCallback
+import com.google.android.material.snackbar.Snackbar
 import com.squareup.picasso.Picasso
 import java.io.File
 
@@ -78,7 +78,7 @@ class EditExpenseFragment : Fragment() {
                     val currentUid = FirebaseAuth.getInstance().currentUser?.uid
                     val payerUid = doc.getString("payerUid")
                     if (payerUid != currentUid) {
-                        Toast.makeText(requireContext(), "You can only edit your own expenses", Toast.LENGTH_SHORT).show()
+                        Snackbar.make(requireView(), "You can only edit your own expenses", Snackbar.LENGTH_SHORT).show()
                         findNavController().navigateUp()
                         return@addOnSuccessListener
                     }
@@ -107,12 +107,12 @@ class EditExpenseFragment : Fragment() {
                     currentGroupId = groupId
                     currentSplitBetweenJson = Gson().toJson(splitBetween)
                 } else {
-                    Toast.makeText(requireContext(), "Expense not found", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(requireView(), "Expense not found", Snackbar.LENGTH_SHORT).show()
                     findNavController().navigateUp()
                 }
             }
             .addOnFailureListener {
-                Toast.makeText(requireContext(), "Failed to load expense", Toast.LENGTH_SHORT).show()
+                Snackbar.make(requireView(), "Failed to load expense", Snackbar.LENGTH_SHORT).show()
             }
 
         addImageButton.setOnClickListener {
@@ -136,13 +136,13 @@ class EditExpenseFragment : Fragment() {
             val uid = FirebaseAuth.getInstance().currentUser?.uid
 
             if (title.isEmpty() || amountStr.isEmpty() || uid == null) {
-                Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show()
+                Snackbar.make(requireView(), "Please fill in all fields", Snackbar.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             val amount = amountStr.toDoubleOrNull()
             if (amount == null) {
-                Toast.makeText(requireContext(), "Invalid amount", Toast.LENGTH_SHORT).show()
+                Snackbar.make(requireView(), "Invalid amount", Snackbar.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -161,7 +161,7 @@ class EditExpenseFragment : Fragment() {
                 .document(expenseId)
                 .update(updatedExpense)
                 .addOnSuccessListener {
-                    Toast.makeText(requireContext(), "Expense updated", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(requireView(), "Expense updated successfully", Snackbar.LENGTH_SHORT).show()
 
                     val updatedEntity = ExpenseEntity(
                         id = expenseId,
@@ -179,7 +179,7 @@ class EditExpenseFragment : Fragment() {
                     findNavController().navigateUp()
                 }
                 .addOnFailureListener {
-                    Toast.makeText(requireContext(), "Failed to update expense", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(requireView(), "Failed to update expense", Snackbar.LENGTH_SHORT).show()
                 }
         }
     }
@@ -210,8 +210,7 @@ class EditExpenseFragment : Fragment() {
         val expenseImageView = rootView.findViewById<ImageView>(R.id.expenseImageView)
         val progressBar = rootView.findViewById<ProgressBar>(R.id.photoUploadProgressBar)
         progressBar.visibility = View.VISIBLE
-
-        Toast.makeText(requireContext(), "Uploading image...", Toast.LENGTH_SHORT).show()
+        Snackbar.make(requireView(), "Uploading image...", Snackbar.LENGTH_SHORT).show()
 
         MediaManager.get().upload(imageUri)
             .callback(object : UploadCallback {
@@ -227,12 +226,12 @@ class EditExpenseFragment : Fragment() {
                         .placeholder(R.drawable.ic_user_placeholder)
                         .into(expenseImageView)
 
-                    Toast.makeText(requireContext(), "Image uploaded successfully", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(requireView(), "Image uploaded successfully", Snackbar.LENGTH_SHORT).show()
                     progressBar.visibility = View.GONE
                 }
 
                 override fun onError(requestId: String?, error: ErrorInfo?) {
-                    Toast.makeText(requireContext(), "Upload failed", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(requireView(), "Failed to upload image", Snackbar.LENGTH_SHORT).show()
                     progressBar.visibility = View.GONE
                 }
 
@@ -252,7 +251,7 @@ class EditExpenseFragment : Fragment() {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 takePhoto()
             } else {
-                Toast.makeText(requireContext(), "Camera permission is required", Toast.LENGTH_SHORT).show()
+                Snackbar.make(requireView(), "Camera permission is required", Snackbar.LENGTH_SHORT).show()
             }
         }
     }

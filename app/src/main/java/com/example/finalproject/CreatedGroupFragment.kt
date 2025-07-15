@@ -21,6 +21,7 @@ import com.example.finalproject.Model.Member
 import com.example.finalproject.viewmodel.ExpenseViewModel
 import com.example.finalproject.viewmodel.GroupViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
@@ -33,12 +34,12 @@ class CreatedGroupFragment : Fragment() {
     private lateinit var expensesRecyclerView: RecyclerView
     private lateinit var addExpenseButton: FloatingActionButton
     private lateinit var expensesAdapter: ExpensesAdapter
-    private val expensesList = mutableListOf<ExpenseEntity>()
     private lateinit var currentUid: String
     private var isGroupCreator = true
     private lateinit var groupViewModel: GroupViewModel
     private lateinit var groupId: String
     private lateinit var membersRecyclerView: RecyclerView
+    private lateinit var expenseViewModel: ExpenseViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,7 +60,7 @@ class CreatedGroupFragment : Fragment() {
         groupViewModel = ViewModelProvider(this)[GroupViewModel::class.java]
         currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
 
-        val expenseViewModel = ViewModelProvider(this)[ExpenseViewModel::class.java]
+        expenseViewModel = ViewModelProvider(this)[ExpenseViewModel::class.java]
 
         groupViewModel.getGroupById(groupId).observe(viewLifecycleOwner) { group ->
             if (group == null) {
@@ -75,9 +76,6 @@ class CreatedGroupFragment : Fragment() {
             loadUserDetailsForMembers(members) { uidMap ->
                 uidToUsernameMap.clear()
                 uidToUsernameMap.putAll(uidMap)
-
-                expensesAdapter = ExpensesAdapter(expensesList, uidToUsernameMap)
-                expensesRecyclerView.adapter = expensesAdapter
             }
         }
 
@@ -86,7 +84,7 @@ class CreatedGroupFragment : Fragment() {
         addExpenseButton = view.findViewById(R.id.addExpenseButton)
 
         expensesRecyclerView.layoutManager = LinearLayoutManager(requireContext())
-        expensesAdapter = ExpensesAdapter(expensesList, uidToUsernameMap)
+        expensesAdapter = ExpensesAdapter(uidToUsernameMap)
         expensesRecyclerView.adapter = expensesAdapter
 
         FirebaseFirestore.getInstance()
@@ -112,16 +110,33 @@ class CreatedGroupFragment : Fragment() {
             }
 
         expenseViewModel.getExpensesForGroup(groupId).observe(viewLifecycleOwner) { expenses ->
-            expensesList.clear()
-            expensesList.addAll(expenses)
-            expensesAdapter.notifyDataSetChanged()
+            Log.d("EXPENSE_OBSERVER", "Observed expenses: ${expenses.size}")
+            val allUids = expenses
+                .flatMap {
+                    Gson().fromJson<List<String>>(it.splitBetweenJson, object : TypeToken<List<String>>() {}.type)
+                }
+                .toSet()
 
-            if (expenses.isEmpty()) {
-                emptyStateContainer.visibility = View.VISIBLE
-                expensesRecyclerView.visibility = View.GONE
-            } else {
-                emptyStateContainer.visibility = View.GONE
-                expensesRecyclerView.visibility = View.VISIBLE
+            if (allUids.isEmpty()) {
+                Log.d("EXPENSE_OBSERVER", "No UIDs to resolve. Not updating adapter.")
+                expensesAdapter.updateExpenses(emptyList())
+                expensesAdapter.notifyDataSetChanged()
+                return@observe
+            }
+
+            loadUserDetailsForMembers(allUids.toList()) { uidMap ->
+                uidToUsernameMap.clear()
+                uidToUsernameMap.putAll(uidMap)
+
+                expensesAdapter.updateExpenses(expenses)
+
+                if (expenses.isNotEmpty()) {
+                    expensesRecyclerView.visibility = View.VISIBLE
+                    emptyStateContainer.visibility = View.GONE
+                } else {
+                    expensesRecyclerView.visibility = View.GONE
+                    emptyStateContainer.visibility = View.VISIBLE
+                }
             }
         }
 
@@ -139,7 +154,7 @@ class CreatedGroupFragment : Fragment() {
         addMemberButton.setOnClickListener {
             val email = emailInput.text.toString().trim()
             if (email.isEmpty()) {
-                Toast.makeText(requireContext(), "Enter an email", Toast.LENGTH_SHORT).show()
+                Snackbar.make(requireView(), "Enter an email", Snackbar.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -150,6 +165,7 @@ class CreatedGroupFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         view?.findViewById<EditText>(R.id.emailInput)?.setText("")
+        syncExpensesFromFirestore()
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -215,13 +231,13 @@ class CreatedGroupFragment : Fragment() {
                 members.remove(currentUid)
                 groupRef.update("members", members).addOnSuccessListener {
                     recalculateExpensesAfterLeaving(currentUid)
-                    Toast.makeText(requireContext(), "You left the group", Toast.LENGTH_SHORT).show()
+                    groupViewModel.deleteGroup(groupId)
+                    Snackbar.make(requireView(), "You left the group", Snackbar.LENGTH_SHORT).show()
                     findNavController().popBackStack(R.id.homeFragment, false)
                 }
-                groupViewModel.deleteGroup(groupId)
             }
         }.addOnFailureListener {
-            Toast.makeText(requireContext(), "Failed to leave group", Toast.LENGTH_SHORT).show()
+            Snackbar.make(requireView(), "Failed to leave group", Snackbar.LENGTH_SHORT).show()
         }
     }
 
@@ -251,10 +267,10 @@ class CreatedGroupFragment : Fragment() {
 
                 batch.commit().addOnSuccessListener {
                     groupViewModel.deleteGroup(groupId)
-                    Toast.makeText(requireContext(), "Group deleted", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(requireView(), "Group deleted", Snackbar.LENGTH_SHORT).show()
                     findNavController().popBackStack(R.id.homeFragment, false)
                 }.addOnFailureListener {
-                    Toast.makeText(requireContext(), "Failed to delete group", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(requireView(), "Failed to delete group", Snackbar.LENGTH_SHORT).show()
                 }
             }
     }
@@ -315,7 +331,7 @@ class CreatedGroupFragment : Fragment() {
             .get()
             .addOnSuccessListener { snapshot ->
                 if (snapshot.isEmpty) {
-                    Toast.makeText(requireContext(), "User not found", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(requireView(), "User not found", Snackbar.LENGTH_SHORT).show()
                     return@addOnSuccessListener
                 }
 
@@ -328,36 +344,36 @@ class CreatedGroupFragment : Fragment() {
                     val members = (doc.get("members") as? MutableList<String>)?.toMutableList() ?: mutableListOf()
 
                     if (newMemberUid in members) {
-                        Toast.makeText(requireContext(), "User already in group", Toast.LENGTH_SHORT).show()
+                        Snackbar.make(requireView(), "User is already a member", Snackbar.LENGTH_SHORT).show()
                         return@addOnSuccessListener
                     }
 
                     members.add(newMemberUid)
                     groupRef.update("members", members)
                         .addOnSuccessListener {
-                            groupViewModel.getGroupById(groupId).observe(viewLifecycleOwner) { group ->
-                                val updatedGroup = group.copy(membersJson = Gson().toJson(members))
+                            val currentGroup = groupViewModel.getGroupById(groupId).value
+                            if (currentGroup != null) {
+                                val updatedGroup = currentGroup.copy(membersJson = Gson().toJson(members))
                                 groupViewModel.insertGroup(updatedGroup)
-
-                                val emailInput = view?.findViewById<EditText>(R.id.emailInput)
-                                emailInput?.setText("")
-                                emailInput?.requestFocus()
-
-                                Toast.makeText(requireContext(), "User added to group", Toast.LENGTH_SHORT).show()
-
-                                loadUserDetailsForMembers(members) { uidMap ->
-                                    uidToUsernameMap.clear()
-                                    uidToUsernameMap.putAll(uidMap)
-
-                                    expensesAdapter = ExpensesAdapter(expensesList, uidToUsernameMap)
-                                    expensesRecyclerView.adapter = expensesAdapter
-                                }
                             }
+
+                            loadUserDetailsForMembers(members) { uidMap ->
+                                uidToUsernameMap.clear()
+                                uidToUsernameMap.putAll(uidMap)
+                                expensesAdapter.notifyDataSetChanged()
+                            }
+
+                            view?.findViewById<EditText>(R.id.emailInput)?.apply {
+                                setText("")
+                                requestFocus()
+                            }
+
+                            Snackbar.make(requireView(), "User added to group", Snackbar.LENGTH_SHORT).show()
                         }
                 }
             }
             .addOnFailureListener {
-                Toast.makeText(requireContext(), "Failed to search user", Toast.LENGTH_SHORT).show()
+                Snackbar.make(requireView(), "Failed to search user", Snackbar.LENGTH_SHORT).show()
             }
     }
 
@@ -376,14 +392,27 @@ class CreatedGroupFragment : Fragment() {
 
                     if (splitBetween.contains(leftUid)) {
                         val newSplit = splitBetween.filter { it != leftUid }
-
                         batch.update(expenseRef, "splitBetween", newSplit)
+
+                        val updatedExpense = ExpenseEntity(
+                            id = doc.id,
+                            groupId = doc.getString("groupId") ?: groupId,
+                            title = doc.getString("title") ?: "",
+                            description = doc.getString("description"),
+                            amount = (doc.getDouble("amount") ?: 0.0),
+                            payerUid = doc.getString("payerUid") ?: "",
+                            timestamp = (doc.getTimestamp("timestamp")?.toDate()?.time) ?: System.currentTimeMillis(),
+                            splitBetweenJson = Gson().toJson(newSplit),
+                            photoUrl = doc.getString("photoUrl")
+                        )
+
+                        expenseViewModel.insertExpense(updatedExpense)
                     }
                 }
 
                 batch.commit()
                     .addOnSuccessListener {
-                        Log.d("Group", "Expenses recalculated after user left")
+                        Log.d("Group", "Expenses recalculated after user left and Room updated")
                     }
                     .addOnFailureListener {
                         Log.e("Group", "Failed to recalculate expenses", it)
@@ -391,4 +420,28 @@ class CreatedGroupFragment : Fragment() {
             }
     }
 
+    private fun syncExpensesFromFirestore() {
+        val db = FirebaseFirestore.getInstance()
+
+        db.collection("expenses")
+            .whereEqualTo("groupId", groupId)
+            .get()
+            .addOnSuccessListener { result ->
+                for (doc in result) {
+                    val splitBetween = doc["splitBetween"] as? List<String> ?: listOf(currentUid)
+                    val expense = ExpenseEntity(
+                        id = doc.id,
+                        groupId = groupId,
+                        title = doc["title"] as? String ?: "",
+                        description = doc["description"] as? String,
+                        amount = (doc["amount"] as? Number)?.toDouble() ?: 0.0,
+                        payerUid = doc["payerUid"] as? String ?: currentUid,
+                        timestamp = (doc["timestamp"] as? Timestamp)?.toDate()?.time ?: System.currentTimeMillis(),
+                        splitBetweenJson = Gson().toJson(splitBetween),
+                        photoUrl = doc["photoUrl"] as? String
+                    )
+                    expenseViewModel.insertExpense(expense)
+                }
+            }
+    }
 }

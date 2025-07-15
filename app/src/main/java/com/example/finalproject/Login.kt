@@ -10,6 +10,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import com.example.finalproject.Userdata.SessionManager
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
@@ -37,8 +38,7 @@ class LoginFragment : Fragment() {
             val password = view.findViewById<EditText>(R.id.passwordEditText).text.toString().trim()
 
             if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(requireContext(), "Please fill all fields", Toast.LENGTH_SHORT)
-                    .show()
+                Snackbar.make(requireView(), "Please fill in all fields", Snackbar.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -59,17 +59,17 @@ class LoginFragment : Fragment() {
 
                                     SessionManager.saveUserSession(requireContext(), uid)
 
-                                    Toast.makeText(requireContext(), "Welcome, $username!", Toast.LENGTH_SHORT).show()
+                                    Snackbar.make(requireView(), "Welcome, $username!", Snackbar.LENGTH_SHORT).show()
 
                                     (requireActivity() as MainActivity).showMainNavigation()
                                     val mainNavController = (requireActivity() as MainActivity).mainNavController
                                     mainNavController.navigate(R.id.homeFragment)
                                 } else {
-                                    Toast.makeText(requireContext(), "User registered but profile is missing. Please contact support.", Toast.LENGTH_LONG).show()
+                                    Snackbar.make(requireView(), "User registered but profile is missing. Please contact support.", Snackbar.LENGTH_SHORT).show()
                                 }
                             }
                             .addOnFailureListener {
-                                Toast.makeText(requireContext(), "Failed to load profile", Toast.LENGTH_SHORT).show()
+                                Snackbar.make(requireView(), "Failed to load profile", Snackbar.LENGTH_SHORT).show()
                             }
 
                     }  else {

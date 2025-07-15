@@ -11,7 +11,6 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import com.example.finalproject.Userdata.SessionManager
 import com.squareup.picasso.Picasso
 import androidx.appcompat.app.AlertDialog
@@ -20,14 +19,11 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import androidx.navigation.fragment.findNavController
 import com.example.finalproject.room.AppDatabase
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseUser
-import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import com.google.gson.reflect.TypeToken
-import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.WriteBatch
 
 class ProfileFragment : Fragment() {
 
@@ -74,7 +70,7 @@ class ProfileFragment : Fragment() {
                 }
             }
             .addOnFailureListener {
-                Toast.makeText(requireContext(), "Failed to load profile", Toast.LENGTH_SHORT).show()
+                Snackbar.make(view, "Failed to load profile", Snackbar.LENGTH_SHORT).show()
             }
 
         val editButton = view.findViewById<Button>(R.id.editButton)
@@ -90,7 +86,7 @@ class ProfileFragment : Fragment() {
                 .setPositiveButton("Yes") { _, _ ->
                     FirebaseAuth.getInstance().signOut()
                     SessionManager.clearUserSession(requireContext())
-                    Toast.makeText(requireContext(), "Logged out", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(view, "Logged out", Snackbar.LENGTH_SHORT).show()
                     (requireActivity() as MainActivity).showAuthNavigation()
                     (requireActivity() as MainActivity).authNavController.navigate(R.id.loginFragment)
                 }
@@ -109,7 +105,7 @@ class ProfileFragment : Fragment() {
                     val uid = user?.uid
 
                     if (uid == null) {
-                        Toast.makeText(requireContext(), "No user session found", Toast.LENGTH_SHORT).show()
+                        Snackbar.make(view, "No user session found", Snackbar.LENGTH_SHORT).show()
                         return@setPositiveButton
                     }
 
@@ -126,7 +122,7 @@ class ProfileFragment : Fragment() {
                             val email = user.email
 
                             if (email.isNullOrBlank() || password.isEmpty()) {
-                                Toast.makeText(requireContext(), "Email or password is empty", Toast.LENGTH_SHORT).show()
+                                Snackbar.make(view, "Email or password is empty", Snackbar.LENGTH_SHORT).show()
                                 return@setPositiveButton
                             }
 
@@ -137,7 +133,7 @@ class ProfileFragment : Fragment() {
                                     deleteAllUserData(uid, user)
                                 }
                                 .addOnFailureListener {
-                                    Toast.makeText(requireContext(), "Reauthentication failed: ${it.message}", Toast.LENGTH_SHORT).show()
+                                    Snackbar.make(view, "Reauthentication failed: ${it.message}", Snackbar.LENGTH_SHORT).show()
                                 }
                         }
                         .setNegativeButton("Cancel", null)
@@ -159,16 +155,16 @@ class ProfileFragment : Fragment() {
                         user.delete().addOnSuccessListener {
                             clearLocalUserData()
 
-                            Toast.makeText(requireContext(), "Account deleted", Toast.LENGTH_SHORT).show()
+                            Snackbar.make(requireView(), "Account deleted", Snackbar.LENGTH_SHORT).show()
                             (requireActivity() as MainActivity).showAuthNavigation()
                             (requireActivity() as MainActivity).authNavController.navigate(R.id.loginFragment)
                         }.addOnFailureListener {
-                            Toast.makeText(requireContext(), "Failed to delete account from authentication", Toast.LENGTH_SHORT).show()
+                            Snackbar.make(requireView(), "Failed to delete account from authentication", Snackbar.LENGTH_SHORT).show()
                         }
                     }
                 }
             }.addOnFailureListener {
-                Toast.makeText(requireContext(), "Failed to delete user profile", Toast.LENGTH_SHORT).show()
+                Snackbar.make(requireView(), "Failed to delete user profile", Snackbar.LENGTH_SHORT).show()
             }
     }
 

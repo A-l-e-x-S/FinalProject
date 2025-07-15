@@ -14,7 +14,6 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.ProgressBar
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -29,6 +28,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import com.example.finalproject.Userdata.SessionManager
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -85,17 +85,17 @@ class UserRegistrationFragment : Fragment() {
                 val username = view.findViewById<EditText>(R.id.nameInput).text.toString().trim()
 
                 if (email.isEmpty() || password.isEmpty() || repeatPassword.isEmpty() || username.isEmpty()) {
-                    Toast.makeText(requireContext(), "Please fill all fields", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(view, "Please fill all fields", Snackbar.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
 
                 if (password != repeatPassword) {
-                    Toast.makeText(requireContext(), "Passwords do not match", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(view, "Passwords do not match", Snackbar.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
 
                 view.findViewById<Button>(R.id.submitRegisterButton).isEnabled = false
-                Toast.makeText(requireContext(), "Creating account...", Toast.LENGTH_SHORT).show()
+                Snackbar.make(view, "Creating account...", Snackbar.LENGTH_SHORT).show()
 
                 FirebaseAuth.getInstance()
                     .createUserWithEmailAndPassword(email, password)
@@ -116,7 +116,7 @@ class UserRegistrationFragment : Fragment() {
                                 .set(userMap)
                                 .addOnSuccessListener {
                                     SessionManager.saveUserSession(requireContext(), uid)
-                                    Toast.makeText(requireContext(), "Registration successful", Toast.LENGTH_SHORT).show()
+                                    Snackbar.make(view, "Registration successful", Snackbar.LENGTH_SHORT).show()
 
                                     (requireActivity() as MainActivity).showMainNavigation()
                                     view?.post {
@@ -124,10 +124,10 @@ class UserRegistrationFragment : Fragment() {
                                     }
                                 }
                                 .addOnFailureListener {
-                                    Toast.makeText(requireContext(), "Failed to save user profile", Toast.LENGTH_SHORT).show()
+                                    Snackbar.make(view, "Failed to save user profile", Snackbar.LENGTH_SHORT).show()
                                 }
                         } else {
-                            Toast.makeText(requireContext(), "Registration failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                            Snackbar.make(view, "Registration failed: ${task.exception?.message}", Snackbar.LENGTH_SHORT).show()
                         }
                     }
             }
@@ -170,7 +170,7 @@ class UserRegistrationFragment : Fragment() {
 
     private fun uploadImageToCloudinary(imageUri: Uri) {
         val progressBar = view?.findViewById<ProgressBar>(R.id.photoUploadProgressBar)
-        Toast.makeText(requireContext(), "Uploading photo...", Toast.LENGTH_SHORT).show()
+        Snackbar.make(requireView(), "Uploading photo...", Snackbar.LENGTH_SHORT).show()
         progressBar?.visibility = View.VISIBLE
 
         MediaManager.get().upload(imageUri)
@@ -182,9 +182,7 @@ class UserRegistrationFragment : Fragment() {
                 override fun onSuccess(requestId: String?, resultData: Map<*, *>) {
                     val imageUrl = resultData["secure_url"] as String
                     uploadedProfileImageUrl = imageUrl
-
-                    Toast.makeText(requireContext(), "Photo uploaded successfully", Toast.LENGTH_SHORT).show()
-
+                    Snackbar.make(requireView(), "Photo uploaded successfully", Snackbar.LENGTH_SHORT).show()
                     Picasso.get()
                         .load(imageUrl)
                         .placeholder(R.drawable.ic_user_placeholder)
@@ -193,7 +191,7 @@ class UserRegistrationFragment : Fragment() {
                 }
 
                 override fun onError(requestId: String?, error: ErrorInfo?) {
-                    Toast.makeText(requireContext(), "Upload failed", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(requireView(), "Upload failed", Snackbar.LENGTH_SHORT).show()
                     progressBar?.visibility = View.GONE
                 }
 
@@ -212,7 +210,7 @@ class UserRegistrationFragment : Fragment() {
         if (requestCode == 1003 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             takePhoto()
         } else {
-            Toast.makeText(requireContext(), "Camera permission is required", Toast.LENGTH_SHORT).show()
+            Snackbar.make(requireView(), "Camera permission is required", Snackbar.LENGTH_SHORT).show()
         }
     }
 }

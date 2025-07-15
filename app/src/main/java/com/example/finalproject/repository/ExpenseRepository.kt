@@ -14,10 +14,6 @@ class ExpenseRepository(private val expenseDao: ExpenseDao) {
         expenseDao.insertExpense(expense)
     }
 
-    suspend fun deleteExpensesForGroup(groupId: String) {
-        expenseDao.deleteExpensesByGroup(groupId)
-    }
-
     suspend fun deleteExpense(expense: ExpenseEntity) {
         expenseDao.deleteExpense(expense)
     }

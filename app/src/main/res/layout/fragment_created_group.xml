@@ -4,7 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Поле ввода email -->
     <LinearLayout
         android:id="@+id/addMemberLayout"
         android:layout_width="0dp"
@@ -31,7 +30,6 @@
             android:text="Add" />
     </LinearLayout>
 
-    <!-- RecyclerView участников -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/membersRecyclerView"
         android:layout_width="0dp"
@@ -41,7 +39,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- RecyclerView трат -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/expensesRecyclerView"
         android:layout_width="0dp"
@@ -53,7 +50,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Empty State -->
     <LinearLayout
         android:id="@+id/emptyStateContainer"
         android:layout_width="0dp"
@@ -83,7 +79,6 @@
             android:textSize="18sp" />
     </LinearLayout>
 
-    <!-- Кнопка добавления траты -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/addExpenseButton"
         android:layout_width="wrap_content"

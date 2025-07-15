@@ -28,6 +28,7 @@ import androidx.core.content.FileProvider
 import com.cloudinary.android.MediaManager
 import com.cloudinary.android.callback.ErrorInfo
 import com.cloudinary.android.callback.UploadCallback
+import com.google.android.material.snackbar.Snackbar
 import com.squareup.picasso.Picasso
 import java.io.File
 
@@ -87,13 +88,13 @@ class AddExpenseFragment : Fragment() {
             val notes = notesEditText.text.toString().trim()
 
             if (expenseName.isEmpty() || expenseAmountStr.isEmpty() || uid == null) {
-                Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show()
+                Snackbar.make(requireView(), "Please fill in all fields", Snackbar.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             val amount = expenseAmountStr.toDoubleOrNull()
             if (amount == null) {
-                Toast.makeText(requireContext(), "Invalid amount", Toast.LENGTH_SHORT).show()
+                Snackbar.make(requireView(), "Invalid amount", Snackbar.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -120,7 +121,7 @@ class AddExpenseFragment : Fragment() {
                         .add(expenseData)
                         .addOnSuccessListener { expenseDocRef ->
                             val firestoreId = expenseDocRef.id
-                            Toast.makeText(requireContext(), "Expense saved", Toast.LENGTH_SHORT).show()
+                            Snackbar.make(requireView(), "Expense saved successfully", Snackbar.LENGTH_SHORT).show()
 
                             val splitJson = Gson().toJson(members)
 
@@ -135,16 +136,15 @@ class AddExpenseFragment : Fragment() {
                                 splitBetweenJson = splitJson,
                                 photoUrl = uploadedImageUrl
                             )
-
                             expenseViewModel.insertExpense(cachedExpense)
                             findNavController().navigateUp()
                         }
                         .addOnFailureListener {
-                            Toast.makeText(requireContext(), "Failed to save expense", Toast.LENGTH_SHORT).show()
+                            Snackbar.make(requireView(), "Failed to save expense", Snackbar.LENGTH_SHORT).show()
                         }
                 }
                 .addOnFailureListener {
-                    Toast.makeText(requireContext(), "Failed to load group", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(requireView(), "Failed to load group", Snackbar.LENGTH_SHORT).show()
                 }
         }
     }
@@ -170,7 +170,7 @@ class AddExpenseFragment : Fragment() {
     private fun uploadImageToCloudinary(imageUri: Uri) {
         val progressBar = view?.findViewById<ProgressBar>(R.id.photoUploadProgressBar)
         progressBar?.visibility = View.VISIBLE
-        Toast.makeText(requireContext(), "Uploading image...", Toast.LENGTH_SHORT).show()
+        Snackbar.make(requireView(), "Uploading image...", Snackbar.LENGTH_SHORT).show()
         val expenseImageView = view?.findViewById<ImageView>(R.id.expenseImageView)
 
         MediaManager.get().upload(imageUri)
@@ -189,12 +189,12 @@ class AddExpenseFragment : Fragment() {
                         .load(imageUrl)
                         .into(expenseImageView)
 
-                    Toast.makeText(requireContext(), "Image uploaded successfully", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(requireView(), "Image uploaded successfully", Snackbar.LENGTH_SHORT).show()
                     progressBar?.visibility = View.GONE
                 }
 
                 override fun onError(requestId: String?, error: ErrorInfo?) {
-                    Toast.makeText(requireContext(), "Upload failed", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(requireView(), "Upload failed", Snackbar.LENGTH_SHORT).show()
                     progressBar?.visibility = View.GONE
                 }
 
@@ -213,7 +213,7 @@ class AddExpenseFragment : Fragment() {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 takePhoto()
             } else {
-                Toast.makeText(requireContext(), "Camera permission is required", Toast.LENGTH_SHORT).show()
+                Snackbar.make(requireView(), "Camera permission is required", Snackbar.LENGTH_SHORT).show()
             }
         }
     }
