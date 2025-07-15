@@ -229,9 +229,23 @@ class CreatedGroupFragment : Fragment() {
 
             if (currentUid in members) {
                 members.remove(currentUid)
+
+                if (members.isEmpty()) {
+                    deleteGroupAndExpenses()
+                    return@addOnSuccessListener
+                }
+
                 groupRef.update("members", members).addOnSuccessListener {
                     recalculateExpensesAfterLeaving(currentUid)
+                    groupViewModel.getGroupById(groupId).observe(viewLifecycleOwner) { group ->
+                        group?.let {
+                            val updatedGroup = it.copy(membersJson = Gson().toJson(members))
+                            groupViewModel.insertGroup(updatedGroup)
+                        }
+                    }
+
                     groupViewModel.deleteGroup(groupId)
+
                     Snackbar.make(requireView(), "You left the group", Snackbar.LENGTH_SHORT).show()
                     findNavController().popBackStack(R.id.homeFragment, false)
                 }
