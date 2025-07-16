@@ -127,13 +127,13 @@ class CreatedGroupFragment : Fragment() {
 
                 expensesAdapter.updateExpenses(expenses)
 
-//                if (expenses.isNotEmpty()) {
-//                    expensesRecyclerView.visibility = View.VISIBLE
-//                    emptyStateContainer.visibility = View.GONE
-//                } else {
-//                    expensesRecyclerView.visibility = View.GONE
-//                    emptyStateContainer.visibility = View.VISIBLE
-//                }
+               if (expenses.isNotEmpty()) {
+                    expensesRecyclerView.visibility = View.VISIBLE
+                    emptyStateContainer.visibility = View.GONE
+                } else {
+                    expensesRecyclerView.visibility = View.GONE
+                   emptyStateContainer.visibility = View.VISIBLE
+               }
             }
         }
 
