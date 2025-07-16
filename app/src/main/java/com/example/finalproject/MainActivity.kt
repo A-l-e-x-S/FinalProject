@@ -2,6 +2,7 @@ package com.example.finalproject
 
 import android.os.Bundle
 import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
@@ -61,17 +62,16 @@ class MainActivity : AppCompatActivity() {
                     supportActionBar?.show()
                     supportActionBar?.setDisplayHomeAsUpEnabled(true)
                     supportActionBar?.title = "Register"
-                }
-                R.id.homeFragment -> {
-                    showMainNavigation()
+                    invalidateOptionsMenu()
                 }
                 else -> {
                     supportActionBar?.show()
                     supportActionBar?.setDisplayHomeAsUpEnabled(false)
+                    invalidateOptionsMenu()
                 }
             }
-            invalidateOptionsMenu()
         }
+
 
         mainNavController.addOnDestinationChangedListener { _, destination, _ ->
             if (findViewById<View>(R.id.main_nav_host_fragment).visibility == View.VISIBLE) {
@@ -84,21 +84,33 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menu?.clear()
-        val currentDestination = if (findViewById<View>(R.id.main_nav_host_fragment).visibility == View.VISIBLE) {
-            mainNavController.currentDestination
-        } else {
-            authNavController.currentDestination
-        }
+        val isMainHostVisible = findViewById<View>(R.id.main_nav_host_fragment).visibility == View.VISIBLE
+        val currentMainDest = mainNavController.currentDestination
 
-        return when (currentDestination?.id) {
-            R.id.homeFragment -> {
-                super.onCreateOptionsMenu(menu)
+        if (isMainHostVisible && currentMainDest?.id == R.id.homeFragment) {
+            menuInflater.inflate(R.menu.menu_home, menu)
+            return true
+        }
+        return false
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val isMainHostVisible = findViewById<View>(R.id.main_nav_host_fragment).visibility == View.VISIBLE
+        val currentMainDest = mainNavController.currentDestination
+
+        return if (isMainHostVisible && currentMainDest?.id == R.id.homeFragment) {
+            when (item.itemId) {
+                R.id.action_add_transaction -> {
+                    mainNavController.navigate(R.id.CreateGroupExpensesFragment)
+                    true
+                }
+                else -> super.onOptionsItemSelected(item)
             }
-            else -> {
-                false
-            }
+        } else {
+            super.onOptionsItemSelected(item)
         }
     }
+
 
     override fun onStart() {
         super.onStart()
@@ -116,8 +128,8 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.auth_nav_host_fragment).visibility = View.GONE
         findViewById<View>(R.id.main_nav_host_fragment).visibility = View.VISIBLE
         findViewById<BottomNavigationView>(R.id.bottomNavigationView).visibility = View.VISIBLE
-
         setupActionBarWithMainNav()
+        invalidateOptionsMenu()
     }
 
     fun showAuthNavigation() {

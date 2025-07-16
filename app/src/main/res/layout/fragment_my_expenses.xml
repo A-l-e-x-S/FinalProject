@@ -1,26 +1,35 @@
-<?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@android:color/white">
+    android:layout_height="match_parent">
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/expensesRecyclerView"
+        android:id="@+id/myExpensesRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="8dp"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        android:clipToPadding="false"/>
+        android:padding="8dp"/>
 
-    <TextView
-        android:id="@+id/emptyStateTextView"
+    <LinearLayout
+        android:id="@+id/emptyStateContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="לא נמצאו הוצאות להצגה"
         android:gravity="center"
-        android:textSize="16sp"
-        android:textColor="#888888"
-        android:visibility="gone"/>
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/emptyStateIcon"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginBottom="16dp"
+            android:contentDescription="No expenses"
+            android:src="@drawable/ic_empty" />
+
+        <TextView
+            android:id="@+id/emptyStateText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No expenses yet"
+            android:textColor="#666666"
+            android:textSize="18sp" />
+    </LinearLayout>
 </FrameLayout>

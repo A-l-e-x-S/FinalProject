@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scrollView"
     android:background="#FFFFFF"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:fitsSystemWindows="true">
 
     <LinearLayout
         android:id="@+id/registrationContainer"
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:gravity="center">
 
         <LinearLayout
@@ -77,6 +79,8 @@
                 android:id="@+id/nameInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="#000000"
+                android:textColorHint="#888888"
                 android:layout_marginBottom="16dp"
                 android:background="@android:drawable/edit_text"
                 android:hint="Enter your name" />
@@ -94,6 +98,8 @@
                 android:id="@+id/emailInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="#000000"
+                android:textColorHint="#888888"
                 android:layout_marginBottom="16dp"
                 android:background="@android:drawable/edit_text"
                 android:hint="Enter your email"
@@ -112,6 +118,8 @@
                 android:id="@+id/passwordInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="#000000"
+                android:textColorHint="#888888"
                 android:layout_marginBottom="16dp"
                 android:background="@android:drawable/edit_text"
                 android:hint="Enter password"
@@ -130,6 +138,8 @@
                 android:id="@+id/repeatPasswordInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="#000000"
+                android:textColorHint="#888888"
                 android:layout_marginBottom="32dp"
                 android:background="@android:drawable/edit_text"
                 android:hint="Repeat password"

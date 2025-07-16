@@ -14,6 +14,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.ProgressBar
+import android.widget.ScrollView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -31,7 +32,6 @@ import com.example.finalproject.Userdata.SessionManager
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-
 
 class UserRegistrationFragment : Fragment() {
 
@@ -57,10 +57,28 @@ class UserRegistrationFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val menuHost = requireActivity()
 
+        val scrollView = view.findViewById<ScrollView>(R.id.scrollView)
+        val passwordEdit = view.findViewById<EditText>(R.id.passwordInput)
+        val repeatPasswordEdit = view.findViewById<EditText>(R.id.repeatPasswordInput)
+
+        val scrollToView = { v: View ->
+            scrollView.post {
+                scrollView.smoothScrollTo(0, v.bottom)
+            }
+        }
+
+        passwordEdit.setOnFocusChangeListener { v, hasFocus ->
+            if (hasFocus) scrollToView(v)
+        }
+        repeatPasswordEdit.setOnFocusChangeListener { v, hasFocus ->
+            if (hasFocus) scrollToView(v)
+        }
+
+        val menuHost = requireActivity()
         (menuHost as MenuHost).addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menu.clear()
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
@@ -118,7 +136,7 @@ class UserRegistrationFragment : Fragment() {
                                     SessionManager.saveUserSession(requireContext(), uid)
                                     Snackbar.make(view, "Registration successful", Snackbar.LENGTH_SHORT).show()
 
-                                    (requireActivity() as MainActivity).showMainNavigation()
+
                                     view?.post {
                                         (requireActivity() as MainActivity).mainNavController.navigate(R.id.homeFragment)
                                     }

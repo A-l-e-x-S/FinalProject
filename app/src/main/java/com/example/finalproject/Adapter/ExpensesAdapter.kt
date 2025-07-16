@@ -1,6 +1,5 @@
 package com.example.finalproject.Adapter
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,7 +23,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import androidx.appcompat.app.AlertDialog
 
 class ExpensesAdapter(
-    private val uidToUsernameMap: Map<String, String>
+    private val uidToUsernameMap: Map<String, String>,
+    private val showEditDelete: Boolean = true
 ) : RecyclerView.Adapter<ExpensesAdapter.ExpenseViewHolder>() {
 
     private val expenses: MutableList<ExpenseEntity> = mutableListOf()
@@ -49,9 +49,17 @@ class ExpensesAdapter(
 
     override fun onBindViewHolder(holder: ExpenseViewHolder, position: Int) {
         val expense = expenses[position]
-        Log.d("ADAPTER", "Binding expense: ${expense.title}")
+        val currentUid = FirebaseAuth.getInstance().currentUser?.uid
         holder.nameTextView.text = expense.title
         holder.amountTextView.text = "₪ %.2f".format(expense.amount)
+
+        if (showEditDelete && expense.payerUid == currentUid) {
+            holder.editExpenseButton.visibility = View.VISIBLE
+            holder.deleteExpenseButton.visibility = View.VISIBLE
+        } else {
+            holder.editExpenseButton.visibility = View.GONE
+            holder.deleteExpenseButton.visibility = View.GONE
+        }
 
         val splitList: List<String> = Gson().fromJson(
             expense.splitBetweenJson,
@@ -60,7 +68,6 @@ class ExpensesAdapter(
 
         val splitCount = splitList.size.takeIf { it > 0 } ?: 1
         val share = expense.amount / splitCount
-        val currentUid = FirebaseAuth.getInstance().currentUser?.uid
 
         val balanceText = when {
             currentUid == null -> "Shared between $splitCount people"

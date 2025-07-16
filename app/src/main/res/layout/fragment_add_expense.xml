@@ -1,65 +1,78 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="24dp">
+    android:fillViewport="true">
 
-    <EditText
-        android:id="@+id/expenseNameEditText"
-        android:layout_width="370dp"
-        android:layout_height="58dp"
-        android:layout_marginBottom="24dp"
-        android:hint="Expense Name" />
-
-    <EditText
-        android:id="@+id/expenseAmountEditText"
-        android:layout_width="370dp"
-        android:layout_height="58dp"
-        android:layout_marginBottom="24dp"
-        android:hint="Amount (₪)"
-        android:inputType="numberDecimal" />
-
-    <EditText
-        android:id="@+id/notesExpensesEditText"
-        android:layout_width="match_parent"
-        android:layout_height="150dp"
-        android:layout_marginBottom="16dp"
-        android:hint="Write your notes here"
-        android:gravity="top"
-        android:inputType="textMultiLine"
-        android:background="@android:drawable/edit_text" />
-
-    <Button
-        android:id="@+id/addImageButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:backgroundTint="#00CFFF"
-        android:textColor="#FFFFFF"
-        android:text="Add Image"
-        android:layout_marginBottom="24dp" />
-
-    <ImageView
-        android:id="@+id/expenseImageView"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_marginBottom="16dp"
-        android:scaleType="centerCrop"
-        android:visibility="gone"
-        android:background="@android:color/darker_gray" />
-
-    <Button
-        android:id="@+id/saveExpenseButton"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:backgroundTint="#00CFFF"
-        android:textColor="#FFFFFF"
-        android:text="Save" />
+        android:orientation="vertical"
+        android:padding="24dp">
 
-    <ProgressBar
-        android:id="@+id/photoUploadProgressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:visibility="gone" />
-</LinearLayout>
+        <EditText
+            android:id="@+id/expenseNameEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#000000"
+            android:textColorHint="#888888"
+            android:minHeight="48dp"
+            android:layout_marginBottom="24dp"
+            android:hint="Expense Name" />
+
+        <EditText
+            android:id="@+id/expenseAmountEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#000000"
+            android:textColorHint="#888888"
+            android:minHeight="48dp"
+            android:layout_marginBottom="24dp"
+            android:hint="Amount (₪)"
+            android:inputType="numberDecimal" />
+
+        <EditText
+            android:id="@+id/notesExpensesEditText"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:textColor="#000000"
+            android:textColorHint="#888888"
+            android:layout_marginBottom="16dp"
+            android:hint="Write your notes here"
+            android:gravity="top"
+            android:inputType="textMultiLine"
+            android:background="@android:drawable/edit_text" />
+
+        <Button
+            android:id="@+id/addImageButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#00CFFF"
+            android:textColor="#FFFFFF"
+            android:text="Add Image"
+            android:layout_marginBottom="24dp" />
+
+        <ImageView
+            android:id="@+id/expenseImageView"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginBottom="16dp"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            android:background="@android:color/darker_gray" />
+
+        <Button
+            android:id="@+id/saveExpenseButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#00CFFF"
+            android:textColor="#FFFFFF"
+            android:text="Save" />
+
+        <ProgressBar
+            android:id="@+id/photoUploadProgressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+    </LinearLayout>
+</ScrollView>

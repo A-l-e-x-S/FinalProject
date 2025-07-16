@@ -6,7 +6,6 @@ import android.view.*
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -110,7 +109,6 @@ class CreatedGroupFragment : Fragment() {
             }
 
         expenseViewModel.getExpensesForGroup(groupId).observe(viewLifecycleOwner) { expenses ->
-            Log.d("EXPENSE_OBSERVER", "Observed expenses: ${expenses.size}")
             val allUids = expenses
                 .flatMap {
                     Gson().fromJson<List<String>>(it.splitBetweenJson, object : TypeToken<List<String>>() {}.type)
@@ -118,7 +116,6 @@ class CreatedGroupFragment : Fragment() {
                 .toSet()
 
             if (allUids.isEmpty()) {
-                Log.d("EXPENSE_OBSERVER", "No UIDs to resolve. Not updating adapter.")
                 expensesAdapter.updateExpenses(emptyList())
                 expensesAdapter.notifyDataSetChanged()
                 return@observe
@@ -130,19 +127,26 @@ class CreatedGroupFragment : Fragment() {
 
                 expensesAdapter.updateExpenses(expenses)
 
-                if (expenses.isNotEmpty()) {
-                    expensesRecyclerView.visibility = View.VISIBLE
-                    emptyStateContainer.visibility = View.GONE
-                } else {
-                    expensesRecyclerView.visibility = View.GONE
-                    emptyStateContainer.visibility = View.VISIBLE
-                }
+//                if (expenses.isNotEmpty()) {
+//                    expensesRecyclerView.visibility = View.VISIBLE
+//                    emptyStateContainer.visibility = View.GONE
+//                } else {
+//                    expensesRecyclerView.visibility = View.GONE
+//                    emptyStateContainer.visibility = View.VISIBLE
+//                }
             }
         }
 
         addExpenseButton.setOnClickListener {
             val action = CreatedGroupFragmentDirections
                 .actionCreatedGroupFragmentToAddExpenseFragment(groupId)
+            findNavController().navigate(action)
+        }
+
+        val historyExpensesButton = view.findViewById<Button>(R.id.historyExpensesButton)
+        historyExpensesButton.setOnClickListener {
+            val action = CreatedGroupFragmentDirections
+                .actionCreatedGroupFragmentToMyExpensesFragment(groupId)
             findNavController().navigate(action)
         }
 

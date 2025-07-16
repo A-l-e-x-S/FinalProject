@@ -62,6 +62,9 @@
         <action
             android:id="@+id/action_CreatedGroupFragment_to_editExpenseFragment"
             app:destination="@id/editExpenseFragment" />
+        <action
+            android:id="@+id/action_CreatedGroupFragment_to_myExpensesFragment"
+            app:destination="@id/myExpensesFragment" />
     </fragment>
 
     <fragment
@@ -97,5 +100,14 @@
     <argument
         android:name="groupId"
         app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/myExpensesFragment"
+        android:name="com.example.finalproject.MyExpensesFragment"
+        android:label="MyExpensesFragment">
+        <argument
+            android:name="groupId"
+            app:argType="string" />
     </fragment>
 </navigation>

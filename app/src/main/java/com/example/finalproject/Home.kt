@@ -2,7 +2,6 @@ package com.example.finalproject
 
 import android.os.Bundle
 import android.view.*
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.lifecycle.ViewModelProvider
@@ -12,10 +11,7 @@ import com.example.finalproject.Adapter.GroupsAdapter
 import com.example.finalproject.Model.GroupEntity
 import com.example.finalproject.viewmodel.GroupViewModel
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.MenuProvider
-import androidx.lifecycle.Lifecycle
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
@@ -39,23 +35,6 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         (requireActivity() as AppCompatActivity).supportActionBar?.title = "Home"
-
-        val menuProvider = object : MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menuInflater.inflate(R.menu.menu_home, menu)
-            }
-
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                return when (menuItem.itemId) {
-                    R.id.action_add_transaction -> {
-                        navigateToCreateGroup()
-                        true
-                    }
-                    else -> false
-                }
-            }
-        }
-        requireActivity().addMenuProvider(menuProvider, viewLifecycleOwner, Lifecycle.State.RESUMED)
 
         currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
 

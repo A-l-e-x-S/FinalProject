@@ -15,6 +15,7 @@ import com.cloudinary.android.callback.ErrorInfo
 import com.cloudinary.android.callback.UploadCallback
 import com.example.finalproject.viewmodel.GroupViewModel
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import java.io.File
 import com.squareup.picasso.Picasso
@@ -49,6 +50,7 @@ class CreateGroupExpensesFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        (requireActivity() as AppCompatActivity).supportActionBar?.title = "Create Group"
 
         val groupNameEditText = view.findViewById<EditText>(R.id.groupNameEditText)
         val groupTypeSpinner = view.findViewById<Spinner>(R.id.groupTypeSpinner)

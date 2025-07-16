@@ -55,7 +55,6 @@ class LoginFragment : Fragment() {
                             .addOnSuccessListener { document ->
                                 if (document.exists()) {
                                     val username = document.getString("username") ?: ""
-                                    val photoUrl = document.getString("profilePhotoUrl")
 
                                     SessionManager.saveUserSession(requireContext(), uid)
 
